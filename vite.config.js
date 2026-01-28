@@ -15,4 +15,12 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
     },
   },
+  build: {
+    outDir: path.resolve(__dirname, "../backend/digisoul/static/frontend"),
+    emptyOutDir: true,
+  },
+  // 清除 console.log
+  esbuild: {
+    drop: ['console'],
+  },
 });

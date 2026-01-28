@@ -1,39 +1,22 @@
 <template>
-    <div class="flex justify-center items-center min-h-screen p-5">
-        <el-card class="max-w-lg w-full">
-            <template #header>
-                <div class="flex justify-center items-center">
-                    <h1>测试卡片</h1>
+    <div class="flex justify-center items-center w-full mt-8">
+        <div class="card bg-base-100 w-96 shadow-sm ">
+            <figure>
+                <img src="/logo.jpg" alt="logo" />
+            </figure>
+            <div class="card-body">
+                <h2 class="card-title">Card Title</h2>
+                <p>A card component has a figure, a body part, and inside body there are title and actions parts</p>
+                <div class="card-actions justify-end">
+                    <button class="btn btn-primary">Buy Now</button>
                 </div>
-            </template>
-            <div class="flex justify-center items-center">
-                <el-button type="primary" @click="handleClick">测试按钮</el-button>
             </div>
-            <template #footer>
-                <div class="flex justify-center items-center">
-                    <div class="mr-4">
-                        计数: {{ count }}
-                    </div>
-                    <div class="ml-4">
-                        两倍计数: {{ haloStore.doubleCount }}
-                    </div>
-                </div>
-            </template>
-        </el-card>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useHaloStore } from '@/store';
-const haloStore = useHaloStore();
-
-const count = ref(haloStore.count);
-
-const handleClick = () => {
-    haloStore.increment();
-    count.value++;
-};
+console.log('Home');
 
 </script>
 
