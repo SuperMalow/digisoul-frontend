@@ -30,8 +30,8 @@
                         <DarkModeIcon v-else />
                     </button>
                     <!-- 用户操作 -->
-                    <button class="btn btn-ghost text-base">
-                        <router-link :to="{ name: 'login' }">登录</router-link>
+                    <button class="btn text-base" @click="toggleModel = true">
+                        登录
                     </button>
                 </div>
             </nav>
@@ -49,6 +49,7 @@
                     <!-- 侧边栏列表项 -->
                     <li>
                         <router-link :to="{ name: 'home' }"
+                            :class="{ 'bg-primary text-primary-content': currentRoute === 'home' }"
                             class="is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="首页">
                             <HomepageIcon />
                             <span class="is-drawer-close:hidden">首页</span>
@@ -57,6 +58,7 @@
                     <!-- 侧边栏列表项 -->
                     <li>
                         <router-link :to="{ name: 'friendship' }"
+                            :class="{ 'bg-primary text-primary-content': currentRoute === 'friendship' }"
                             class="is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="交友">
                             <FriendshipIcon />
                             <span class="is-drawer-close:hidden">交友</span>
@@ -73,6 +75,7 @@
             </div>
         </div>
     </div>
+    <Modal v-model:toggleModel="toggleModel" />
 </template>
 
 <script setup>
@@ -84,12 +87,21 @@ import CreateIcon from '@/component/Icon/CreateIcon.vue';
 import SunModeIcon from '@/component/Icon/SunModeIcon.vue';
 import DarkModeIcon from '@/component/Icon/DarkModeIcon.vue';
 
-import { onMounted } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useThemeStore } from '@/stores/themeStore';
+import { useRoute } from 'vue-router';
+
+import Modal from '@/component/Account/AccountModal.vue';
+
+const toggleModel = ref(false);
+
+const route = useRoute();
 
 const themeStore = useThemeStore();
 const { isDarkMode } = storeToRefs(themeStore);
+
+const currentRoute = computed(() => route.name);
 
 const toggleDarkMode = () => {
     themeStore.toggleTheme();
