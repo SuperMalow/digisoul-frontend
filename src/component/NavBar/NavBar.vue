@@ -9,7 +9,7 @@
                         <MenuIcon />
                     </label>
                     <div class="hidden sm:block px-4">
-                        <span class="text-lg font-bold">Digisoul</span>
+                        <span class="text-lg font-bold">DIGISOUL</span>
                     </div>
                 </div>
                 <!-- 搜索框：大屏居中，小屏隐藏 -->

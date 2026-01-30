@@ -1,6 +1,6 @@
 <template>
     <dialog id="my_modal" class="modal" :open="toggleModel">
-        <div class="modal-box bg-base-100 w-1/2 max-w-5xl">
+        <div class="modal-box bg-base-100 w-1/2 max-w-3xl">
             <form method="dialog">
                 <h3 class="text-xl font-bold text-center">
                     登录后免费体验
