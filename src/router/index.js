@@ -67,9 +67,11 @@ const router = createRouter({
   routes: routes,
 });
 import { ElMessage } from "element-plus";
+import { useUserStore } from "@/stores/userStore";
 
 router.beforeEach((to, from, next) => {
-  if (to.meta.isAuthorized && !localStorage.getItem("token")) {
+  const userStore = useUserStore();
+  if (to.meta.isAuthorized && !userStore.isLogin) {
     ElMessage.error("请先登录喵~");
     next({ name: "login" });
   } else {

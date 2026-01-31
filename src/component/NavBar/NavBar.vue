@@ -30,9 +30,10 @@
                         <DarkModeIcon v-else />
                     </button>
                     <!-- 用户操作 -->
-                    <button class="btn text-base" @click="toggleModel = true">
+                    <button class="btn text-base" @click="toggleModel = true" v-if="!isLogin">
                         登录
                     </button>
+                    <UserMenu v-if="isLogin" />
                 </div>
             </nav>
 
@@ -86,6 +87,7 @@ import FriendshipIcon from '@/component/Icon/FriendshipIcon.vue';
 import CreateIcon from '@/component/Icon/CreateIcon.vue';
 import SunModeIcon from '@/component/Icon/SunModeIcon.vue';
 import DarkModeIcon from '@/component/Icon/DarkModeIcon.vue';
+import UserMenu from './UserMenu.vue';
 
 import { onMounted, computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
@@ -93,6 +95,11 @@ import { useThemeStore } from '@/stores/themeStore';
 import { useRoute } from 'vue-router';
 
 import Modal from '@/component/Account/AccountModal.vue';
+
+import { useUserStore } from '@/stores/userStore';
+
+const userStore = useUserStore();
+const { isLogin } = storeToRefs(userStore);
 
 const toggleModel = ref(false);
 

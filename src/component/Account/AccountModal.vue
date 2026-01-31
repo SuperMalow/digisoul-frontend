@@ -29,7 +29,7 @@
                         <span class="text-base font-bold hidden lg:block">OR</span>
                     </div>
                     <div class="flex-1 ">
-                        <AccountLogin />
+                        <AccountLogin @closeLogin="toggleModel = false" />
                     </div>
                 </div>
             </div>

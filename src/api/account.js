@@ -1,9 +1,9 @@
 import http from "./http";
 
-// 登录
-const login = (data) => {
-  const url = "api/account/login/"; // 登录接口
+// 邮箱密码登录
+const emailPasswordLogin = (data) => {
+  const url = 'user/password/login/';
   return http.post(url, data);
 };
 
-export { login };
+export { emailPasswordLogin };
