@@ -17,10 +17,15 @@
                 </router-link>
             </li>
             <li>
-                <router-link :to="{ name: 'space', params: { user_id: userStore.uuid } }"
+                <!-- uuid 未拉取到时不要生成带必填 params 的路由，避免 “Missing required param 'user_id'” -->
+                <router-link v-if="userStore.isLogin && userStore.uuid"
+                    :to="{ name: 'space', params: { user_id: userStore.uuid } }"
                     class="text-sm hover:cursor-pointer mt-2" @click="closeMenu">
                     <UserSpaceIcon />个人空间
                 </router-link>
+                <a v-else class="text-sm mt-2 opacity-50 cursor-not-allowed" @click.prevent>
+                    <UserSpaceIcon />个人空间
+                </a>
             </li>
             <li>
                 <router-link :to="{ name: 'profile' }" class="text-sm hover:cursor-pointer mt-2" @click="closeMenu">
@@ -49,7 +54,10 @@ import { userLogout } from '@/api/account';
 const userStore = useUserStore();
 
 const closeMenu = () => {
-    document.querySelector('.dropdown-content').classList.remove('show');
+    // document.querySelector('.dropdown-content').classList.remove('show');
+    const element = document.activeElement
+    if (element && element instanceof HTMLElement) element.blur()
+    console.log('关闭菜单');
 };
 
 const handleLogout = async () => {

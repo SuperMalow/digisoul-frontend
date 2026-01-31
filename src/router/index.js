@@ -73,6 +73,8 @@ router.beforeEach((to, from, next) => {
   const userStore = useUserStore();
   const navbarStore = useNavbarStore();
   if (to.meta.isAuthorized && !userStore.isLogin) {
+    // 访问需要登录的页面时，如果未登录，返回首页并打开登录窗口
+    router.push('/');
     navbarStore.openLoginModal();
   } else {
     next();

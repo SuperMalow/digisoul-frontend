@@ -44,13 +44,12 @@ class Http {
       (error) => {
         const user = useUserStore();
         const originalRequest = error.config;
-        if (!originalRequest || this.isRefreshing) {
-          return Promise.reject(error);
-        }
-
+        if (!originalRequest) return Promise.reject(error);
+        console.log('error.response?.status => ', error.response?.status);
+        console.log('originalRequest._retry => ', originalRequest._retry);
         if (error.response?.status === 401 && !originalRequest._retry) {
-          // 如果请求发现 token 过期，则开始刷新 token
-          this.isRefreshing = true;
+          console.log('401 => ', error);
+          originalRequest._retry = true; // 设置请求重试标志
           // 开始请求刷新 token 的 promise
           return new Promise((resolve, reject) => {
             // 将这次 401 请求添加到请求队列
@@ -59,18 +58,22 @@ class Http {
                 reject(error);
               } else {
                 originalRequest.headers.Authorization = `Bearer ${token}`;
-                resolve(originalRequest);
+                // 关键：必须真正把原请求重新发出去
+                resolve(this.instance(originalRequest));
               }
             });
-
+            console.log('this.isRefreshing => ', this.isRefreshing);
             // 如果当前没有在刷新 token，则开始刷新 token
             if (!this.isRefreshing) {
+              console.log('开始通过 refresh_token 刷新 access_token');
               this.isRefreshing = true;
               this.post(REFRESH_TOKEN_URL, {}, { withCredentials: true }).then(response => {
                 const { access } = response.data;
+                console.log('refresh_token 刷新 access_token 成功 => ', access);
                 user.setAccessToken(access);
                 this.forEachRequestAddAccessToken(access);
               }).catch(error => {
+                console.log('refresh_token 刷新 access_token 失败 => ', error);
                 user.logout();
                 this.addErrorToRequest(error);
                 reject(error);
@@ -107,16 +110,16 @@ class Http {
 
   // 请求方法
   get(url, params = {}, config = {}) {
-    return this.instance.get(url, { params });
+    return this.instance.get(url, { params, ...config });
   }
   post(url, data = {}, config = {}) {
-    return this.instance.post(url, data);
+    return this.instance.post(url, data, config);
   }
   put(url, data = {}, config = {}) {
-    return this.instance.put(url, data);
+    return this.instance.put(url, data, config);
   }
   delete(url, params = {}, config = {}) {
-    return this.instance.delete(url, { params });
+    return this.instance.delete(url, { params, ...config });
   }
 }
 

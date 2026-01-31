@@ -12,7 +12,7 @@
         <form class="text-center" @submit.prevent="handleLogin">
             <label class="input validator my-4 w-full">
                 <EmailIcon />
-                <input type="email" placeholder="请输入邮箱" :pattern="emailPattern" autocomplete="email" v-model="email"
+                <input type="email" placeholder="请输入邮箱" :pattern="emailPattern" autocomplete="off" v-model="email"
                     required />
             </label>
             <label class="input validator my-4 w-full" v-if="loginType === 'email'">
@@ -23,8 +23,7 @@
                 <div class="w-full">
                     <label class="input validator join-item w-full">
                         <EmailIcon />
-                        <input type="text" placeholder="请输入验证码" autocomplete="one-time-code" v-model="verifyCode"
-                            required />
+                        <input type="text" placeholder="请输入验证码" autocomplete="off" v-model="verifyCode" required />
                     </label>
                 </div>
                 <button class="btn join-item border-none">获取验证码</button>
@@ -65,6 +64,7 @@ const handleLogin = async () => {
         password: password.value
     });
     if (response.status === 200) {
+        console.log('登录成功 ===> ', response.data);
         userStore.setAccessToken(response.data.access);
         userStore.setUserInfo(response.data.user);
         // 登录成功 关闭登录窗口

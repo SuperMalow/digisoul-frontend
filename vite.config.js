@@ -21,6 +21,6 @@ export default defineConfig({
   },
   // 清除 console.log
   esbuild: {
-    drop: ['console'],
+    // drop: ['console'],
   },
 });
