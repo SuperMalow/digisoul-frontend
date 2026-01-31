@@ -6,4 +6,16 @@ const emailPasswordLogin = (data) => {
   return http.post(url, data);
 };
 
-export { emailPasswordLogin };
+// 用户登出
+const userLogout = () => {
+  const url = 'user/logout/';
+  return http.post(url);
+};
+
+// 获取用户信息
+const pullUserInfo = () => {
+  const url = 'user/info/';
+  return http.post(url);
+};
+
+export { emailPasswordLogin, userLogout, pullUserInfo };

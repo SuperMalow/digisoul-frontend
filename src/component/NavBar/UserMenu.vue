@@ -42,9 +42,10 @@ import UserProfileIcon from '@/component/Icon/UserProfileIcon.vue';
 import UserLogoutIcon from '@/component/Icon/UserLogoutIcon.vue';
 import UserSpaceIcon from '@/component/Icon/UserSpaceIcon.vue';
 import { useUserStore } from '@/stores/userStore';
-import { useRouter } from 'vue-router';
+import { ElMessage } from 'element-plus';
 
-const router = useRouter();
+import { userLogout } from '@/api/account';
+
 const userStore = useUserStore();
 
 const closeMenu = () => {
@@ -52,10 +53,18 @@ const closeMenu = () => {
 };
 
 const handleLogout = async () => {
-    // const response = await userLogout();
-    userStore.logout();
-    closeMenu();
-    router.push({ name: 'home' });
+    try {
+        const response = await userLogout();
+        if (response.status === 200) {
+            console.log(response);
+            ElMessage.success('退出登录成功喵~');
+        }
+    } catch (error) {
+        console.error(error);
+    } finally {
+        userStore.logout();
+        closeMenu();
+    }
 };
 </script>
 
