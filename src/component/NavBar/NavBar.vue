@@ -25,7 +25,7 @@
                 <!-- 用户操作 -->
                 <div class="navbar-end">
                     <!-- 切换日间/夜间模式 -->
-                    <button class="btn btn-ghost text-md btn-circle md:mx-2" @click="toggleDarkMode">
+                    <button class="btn btn-sm btn-ghost text-md btn-circle mx-2" @click="toggleDarkMode">
                         <SunModeIcon v-if="isDarkMode" />
                         <DarkModeIcon v-else />
                     </button>
