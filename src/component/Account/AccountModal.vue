@@ -1,5 +1,5 @@
 <template>
-    <dialog id="my_modal" class="modal" :open="toggleModel">
+    <dialog id="my_modal" class="modal" :open="navbarStore.isOpenLoginModal">
         <div class="modal-box bg-base-100 w-1/2 max-w-3xl">
             <form method="dialog">
                 <h3 class="text-xl font-bold text-center">
@@ -18,7 +18,7 @@
                     生活
                 </h3>
                 <button class="btn btn-sm btn-circle btn-ghost absolute top-2 right-2"
-                    @click="toggleModel = false">X</button>
+                    @click="closeLoginModal">X</button>
             </form>
             <div class="modal-body my-6 h-2/3">
                 <div class="flex w-full flex-row">
@@ -29,7 +29,7 @@
                         <span class="text-base font-bold hidden lg:block">OR</span>
                     </div>
                     <div class="flex-1 ">
-                        <AccountLogin @closeLogin="toggleModel = false" />
+                        <AccountLogin @closeLogin="closeLoginModal" />
                     </div>
                 </div>
             </div>
@@ -41,11 +41,22 @@
 import ScanCodeLogin from './ScanCodeLogin.vue';
 import AccountLogin from './AccountLogin.vue';
 
-const toggleModel = defineModel('toggleModel', {
-    type: Boolean,
-    default: false,
-});
+import { useNavbarStore } from '@/stores/navbarStore';
 
+const navbarStore = useNavbarStore();
+
+const closeLoginModal = () => {
+    navbarStore.closeLoginModal();
+}
+
+const openLoginModal = () => {
+    navbarStore.openLoginModal();
+}
+
+defineExpose({
+    openLoginModal: openLoginModal,
+    closeLoginModal: closeLoginModal,
+});
 
 </script>
 

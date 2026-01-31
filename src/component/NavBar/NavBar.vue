@@ -30,7 +30,7 @@
                         <DarkModeIcon v-else />
                     </button>
                     <!-- 用户操作 -->
-                    <button class="btn text-base" @click="toggleModel = true" v-if="!isLogin">
+                    <button class="btn text-base" @click="loginModalRef.openLoginModal()" v-if="!isLogin">
                         登录
                     </button>
                     <UserMenu v-if="isLogin" />
@@ -76,7 +76,7 @@
             </div>
         </div>
     </div>
-    <Modal v-model:toggleModel="toggleModel" />
+    <Modal ref="loginModalRef" />
 </template>
 
 <script setup>
@@ -101,7 +101,7 @@ import { useUserStore } from '@/stores/userStore';
 const userStore = useUserStore();
 const { isLogin } = storeToRefs(userStore);
 
-const toggleModel = ref(false);
+const loginModalRef = ref(null);
 
 const route = useRoute();
 

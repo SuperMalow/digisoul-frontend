@@ -66,14 +66,14 @@ const router = createRouter({
   history: createWebHistory(),
   routes: routes,
 });
-import { ElMessage } from "element-plus";
 import { useUserStore } from "@/stores/userStore";
+import { useNavbarStore } from "@/stores/navbarStore";
 
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore();
+  const navbarStore = useNavbarStore();
   if (to.meta.isAuthorized && !userStore.isLogin) {
-    ElMessage.error("请先登录喵~");
-    next({ name: "login" });
+    navbarStore.openLoginModal();
   } else {
     next();
   }

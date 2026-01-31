@@ -7,7 +7,7 @@
         </div>
         <ul tabindex="-1" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-4 w-52 p-2 shadow">
             <li>
-                <router-link :to="{ name: 'profile' }" class="text-sm hover:cursor-pointer mt-2" @click="closeMenu">
+                <router-link :to="{ name: 'profile' }" class="text-sm hover:cursor-pointer" @click="closeMenu">
                     <div class="avatar">
                         <div class="w-10 rounded-full">
                             <img :src="userStore.userPhoto" alt="用户头像" />
