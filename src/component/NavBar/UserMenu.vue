@@ -5,7 +5,7 @@
                 <img :src="userStore.userPhoto" alt="用户头像" class="w-10 h-10 rounded-full">
             </div>
         </div>
-        <ul tabindex="-1" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-4 w-52 p-2 shadow">
+        <ul tabindex="-1" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-4 w-48 p-2 shadow">
             <li>
                 <router-link :to="{ name: 'profile' }" class="text-sm hover:cursor-pointer" @click="closeMenu">
                     <div class="avatar">
