@@ -59,20 +59,26 @@ const handleLogin = async () => {
         ElMessage.error('请输入邮箱和密码');
         return;
     }
-    const response = await emailPasswordLogin({
-        email: email.value,
-        password: password.value
-    });
-    if (response.status === 200) {
-        console.log('登录成功 ===> ', response.data);
-        userStore.setAccessToken(response.data.access);
-        userStore.setUserInfo(response.data.user);
-        // 登录成功 关闭登录窗口
-        emit('closeLogin');
+    try {
+        const result = await emailPasswordLogin({
+            email: email.value,
+            password: password.value
+        });
+        console.log('登录结果 result ===> ', result);
+        if (result?.status === 200) {
+            console.log('登录成功 ===> ', result);
+            userStore.setAccessToken(result?.data?.access);
+            userStore.setUserInfo(result?.data?.user);
+            // 登录成功 关闭登录窗口
+            emit('closeLogin');
+        }
+    } catch (error) {
+        console.log('登录功能异常 error ===> ', error);
+        ElMessage.error('登录失败，请重试');
+        // 登录失败 清空输入框 但是邮箱不清空
+        password.value = '';
+        verifyCode.value = '';
     }
-    console.log(response);
 };
-
 </script>
-
 <style scoped></style>

@@ -84,6 +84,7 @@ class Http {
             // 如果已经刷新 token，说明这次 401 请求不是一开始获取登录信息的请求，则不处理
           })
         }
+        return Promise.reject(error);
       }
     );
   }
