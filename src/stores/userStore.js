@@ -32,6 +32,12 @@ export const useUserStore = defineStore('user', {
         setHasPullUserInfo(hasPullUserInfo) {
             this.hasPullUserInfo = hasPullUserInfo;
         },
+        /** 部分更新用户信息（用于 profile 更新后的合并） */
+        updateUserProfile(data) {
+            if (data.username !== undefined) this.username = data.username;
+            if (data.profile !== undefined) this.profile = data.profile;
+            if (data.photo !== undefined) this.photo = data.photo;
+        },
         logout() {
             this.accessToken = null;
             this.uuid = null;

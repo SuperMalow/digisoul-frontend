@@ -13,6 +13,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.16",
     "axios": "^1.13.4",
+    "croppie": "^2.6.5",
     "element-plus": "^2.11.5",
     "pinia": "^3.0.3",
     "tailwindcss": "^4.1.16",
