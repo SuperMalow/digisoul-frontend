@@ -20,4 +20,12 @@ const updateCharacter = (data) => {
     return http.post(url, data);
 };
 
-export { createCharacter, updateCharacter };
+/**
+ * 获取创作角色
+ * @param {String} uuid - 角色 uuid
+ */
+const getCharacter = (uuid) => {
+    return http.get(`character/get/?uuid=${uuid}`);
+};
+
+export { createCharacter, updateCharacter, getCharacter };

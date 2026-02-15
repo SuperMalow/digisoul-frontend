@@ -24,6 +24,10 @@
                 </div>
                 <!-- 用户操作 -->
                 <div class="navbar-end">
+                    <button class="btn btn-sm btn-ghost text-md btn-circle mx-2"
+                        @click="router.push('/create/character/update/character_N5x9QjVb6P27ZpHy')">
+                        测试按钮
+                    </button>
                     <!-- 切换日间/夜间模式 -->
                     <button class="btn btn-sm btn-ghost text-md btn-circle mx-2" @click="toggleDarkMode">
                         <SunModeIcon v-if="isDarkMode" />
@@ -88,6 +92,9 @@ import CreateIcon from '@/component/Icon/CreateIcon.vue';
 import SunModeIcon from '@/component/Icon/SunModeIcon.vue';
 import DarkModeIcon from '@/component/Icon/DarkModeIcon.vue';
 import UserMenu from './UserMenu.vue';
+
+import { useRouter } from 'vue-router';
+const router = useRouter();
 
 import { onMounted, computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';

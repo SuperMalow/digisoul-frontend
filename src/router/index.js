@@ -26,6 +26,14 @@ const routes = [
     }
   },
   {
+    path: "/create/character/update/:uuid",
+    component: () => import("@/views/Create/UpdateCharacterView.vue"),
+    name: "update-character",
+    meta: {
+      isAuthorized: true,
+    }
+  },
+  {
     path: "/user",
     name: "user",
     children: [
@@ -59,13 +67,13 @@ const routes = [
     path: "/:pathMatch(.*)*",
     redirect: "/404",
   },
-
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes: routes,
 });
+
 import { useUserStore } from "@/stores/userStore";
 import { useNavbarStore } from "@/stores/navbarStore";
 
