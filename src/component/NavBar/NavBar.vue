@@ -13,15 +13,16 @@
                     </div>
                 </div>
                 <!-- 搜索框：大屏居中，小屏隐藏 -->
-                <div class="navbar-center hidden md:flex md:w-1/2 max-w-180">
+                <form @submit.prevent="handlerSearch" class="navbar-center hidden md:flex md:w-1/2 max-w-180">
                     <div class="join w-full justify-center">
-                        <input class="input join-item rounded-l-full w-4/5" placeholder="搜索你感兴趣的内容" />
-                        <button class="btn join-item rounded-r-full gap-0">
+                        <input class="input join-item rounded-l-full w-4/5" placeholder="搜索你感兴趣的内容"
+                            v-model="searchKeyword" />
+                        <button class="btn join-item rounded-r-full gap-0" @click="handlerSearch">
                             <SearchIcon />
                             <span class="is-drawer-close:hidden">搜索</span>
                         </button>
                     </div>
-                </div>
+                </form>
                 <!-- 用户操作 -->
                 <div class="navbar-end">
                     <!-- 创作按钮 -->
@@ -99,7 +100,7 @@ import UserMenu from './UserMenu.vue';
 import { useRouter } from 'vue-router';
 const router = useRouter();
 
-import { onMounted, computed, ref } from 'vue';
+import { onMounted, computed, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useThemeStore } from '@/stores/themeStore';
 import { useRoute } from 'vue-router';
@@ -123,6 +124,19 @@ const currentRoute = computed(() => route.name);
 const toggleDarkMode = () => {
     themeStore.toggleTheme();
 };
+
+// 搜索词
+const searchKeyword = ref('');
+
+// 搜索
+const handlerSearch = () => {
+    router.push({ name: 'home', query: { q: searchKeyword.value.trim() } });
+};
+
+// 监听路由参数与搜索词直接的绑定
+watch(() => route.query.q, (newVal) => {
+    searchKeyword.value = newVal;
+});
 
 onMounted(() => {
     themeStore.initTheme();

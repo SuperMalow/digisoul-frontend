@@ -3,7 +3,7 @@
         <SpaceUserInfoView />
         <div class="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-8 mt-12 justify-items-center w-full px-7">
             <Character v-for="character in characters" :key="character.uuid" :character="character"
-                @remove="removeCharacter" />
+                @remove="removeCharacter" :canEdit="true" />
         </div>
         <!--  流式布局哨兵 -->
         <div ref="sentinelRef" class="h-2 mt-8 w-100"></div>

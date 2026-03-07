@@ -44,4 +44,14 @@ const getCharacterList = (uuid, page = 1, page_size = 10) => {
     return http.get(`character/list/?uuid=${uuid}&page=${page}&page_size=${page_size}`);
 };
 
-export { createCharacter, updateCharacter, deleteCharacter, getCharacter, getCharacterList };
+/**
+ * 获取创作角色列表 - 首页
+ */
+const getCharacterListIndex = (page = 1, page_size = 10, q = null) => {
+    if (q) {
+        return http.get(`character/list/index/?page=${page}&page_size=${page_size}&q=${q}`);
+    }
+    return http.get(`character/list/index/?page=${page}&page_size=${page_size}`);
+};
+
+export { createCharacter, updateCharacter, deleteCharacter, getCharacter, getCharacterList, getCharacterListIndex };

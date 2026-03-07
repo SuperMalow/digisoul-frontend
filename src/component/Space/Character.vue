@@ -1,10 +1,10 @@
 <template>
     <div>
         <div class="card card-compact bg-base-100 shadow-2xl rounded-2xl">
-            <figure>
+            <figure class="max-h-60">
                 <img :src="character?.background_photo" alt="角色背景"
                     class="object-cover hover:scale-110 transition-all duration-300 relative" />
-                <div v-if="character?.author_uuid === userStore.uuid"
+                <div v-if="canEdit && character?.author_uuid === userStore.uuid"
                     class="absolute top-0 flex justify-center gap-2 w-full bg-black/20 rounded-t-2xl">
                     <router-link :to="`/create/character/update/${character.uuid}`"
                         class="btn btn-circle btn-ghost bg-transparent cursor-pointer">
@@ -20,7 +20,7 @@
                 <p class="card-text line-clamp-2 break-all">{{ character?.profile }}</p>
                 <div class="grid w-full mt-1">
                     <div class="flex items-center gap-2">
-                        <router-link :to="`/user/space/${character.author_uuid}`"
+                        <router-link :to="`/user/space/${character?.author_uuid}`"
                             class="cursor-pointer hover:scale-110 transition-all duration-300">
                             <img :src="character?.photo" alt="角色头像" class="w-6 h-6 object-cover rounded-2xl" />
                         </router-link>
@@ -47,6 +47,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    canEdit: {
+        type: Boolean,
+        default: false,
+    }
 });
 
 const emit = defineEmits(['remove']);
