@@ -21,6 +21,14 @@ const updateCharacter = (data) => {
 };
 
 /**
+ * 删除创作角色
+ * @param {String} uuid - 角色 uuid
+ */
+const deleteCharacter = (uuid) => {
+    return http.post(`character/delete/`, { uuid });
+};
+
+/**
  * 获取创作角色
  * @param {String} uuid - 角色 uuid
  */
@@ -28,4 +36,12 @@ const getCharacter = (uuid) => {
     return http.get(`character/get/?uuid=${uuid}`);
 };
 
-export { createCharacter, updateCharacter, getCharacter };
+/**
+ * 获取创作角色列表
+ * @param {String} uuid - 用户 uuid
+ */
+const getCharacterList = (uuid, page = 1, page_size = 10) => {
+    return http.get(`character/list/?uuid=${uuid}&page=${page}&page_size=${page_size}`);
+};
+
+export { createCharacter, updateCharacter, deleteCharacter, getCharacter, getCharacterList };

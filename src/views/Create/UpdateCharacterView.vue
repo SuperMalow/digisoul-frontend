@@ -3,6 +3,11 @@
         <div class="max-w-lg mx-auto px-4 py-8">
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body p-4 sm:p-6">
+                    <!-- 返回上个操作 -->
+                    <button @click="router.back()" class="absolute top-2 left-2 btn btn-sm btn-ghost">
+                        返回
+                    </button>
+
                     <!-- 标题 -->
                     <h1 class="text-2xl font-semibold text-center mb-4 text-base-content/90">
                         编辑角色
@@ -121,7 +126,6 @@ import { ref, onMounted, nextTick, onBeforeUnmount } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 import CameraIcon from "@/component/Icon/CameraIcon.vue";
-import baseToFile from "@/utils/baseToFile";
 
 import { updateCharacter, getCharacter } from "@/api/character";
 

@@ -42,7 +42,7 @@ const routes = [
         component: () => import("@/views/User/Space/SpaceView.vue"),
         name: "space",
         meta: {
-          isAuthorized: true,
+          isAuthorized: false,
         }
       },
       {

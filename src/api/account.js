@@ -18,4 +18,10 @@ const pullUserInfo = () => {
   return http.post(url);
 };
 
-export { emailPasswordLogin, userLogout, pullUserInfo };
+// 通过uuid获取用户信息
+const getUserInfoByUuid = (uuid) => {
+  const url = `user/profile/get/?uuid=${uuid}`;
+  return http.get(url);
+};
+
+export { emailPasswordLogin, userLogout, pullUserInfo, getUserInfoByUuid };
