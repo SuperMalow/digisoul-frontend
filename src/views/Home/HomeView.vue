@@ -11,7 +11,7 @@
         <div v-if="isLoading" class="mt-4">
             <div class="loading loading-spinner loading-lg"></div>
         </div>
-        <div v-else class="mt-2">
+        <div v-else class="mt-2 mb-4">
             <div class="text-sm">没有更多角色了~</div>
         </div>
 

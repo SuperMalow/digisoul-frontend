@@ -9,7 +9,7 @@
         <!-- 用户信息区域 -->
         <div class="flex flex-col justify-center w-64 h-36 gap-2">
             <div class="text-2xl font-bold line-clamp-1 break-all">{{ userProfile?.username }}</div>
-            <div class="text-sm text-gray-500 mt-1">ID:{{ userProfile?.uuid }}</div>
+            <div class="text-sm text-gray-500 mt-1">ID: {{ userProfile?.uuid?.toUpperCase() }}</div>
             <div class="text-sm text-gray-500 h-20 mt-2 line-clamp-4 break-all">{{ userProfile?.profile }}</div>
         </div>
     </div>

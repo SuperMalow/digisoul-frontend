@@ -17,7 +17,7 @@
                             @click="handlerAddFriends">添加好友</button>
                         <button v-else
                             class="btn  btn-error cursor-pointer rounded-full outline-none focus:ring-0 text-white"
-                            @click="isFriend = false">删除好友</button>
+                            @click="handlerDeleteFriends">删除好友</button>
                     </div>
                 </div>
                 <p class="mt-4 break-all">{{ content?.profile }}</p>
@@ -100,7 +100,7 @@ const handlerAddFriends = async () => {
 // 删除好友
 const handlerDeleteFriends = async () => {
     try {
-        const res = await deleteFriendsApi(props.content.uuid);
+        const res = await deleteFriendsApi(props.content?.is_friend?.uuid);
         console.log('handlerDeleteFriends:', res)
         if (res?.status === 200) {
             ElMessage.success('删除好友成功');
@@ -163,7 +163,7 @@ const handleCreateTime = (time) => {
 }
 
 onMounted(() => {
-    console.log('content: ', props.content);
+    // console.log('content: ', props.content);
 });
 
 </script>

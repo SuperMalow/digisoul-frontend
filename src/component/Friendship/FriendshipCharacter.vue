@@ -17,7 +17,7 @@
                 <ul tabindex="-1" class="dropdown-content bg-base-200/90 menu rounded-box z-1 w-22 shadow-sm">
                     <li>
                         <router-link :to="`/user/space/${character?.author?.uuid}`" class="text-xs cursor-pointer">
-                            查看作者
+                            进入空间
                         </router-link>
                     </li>
                     <li>

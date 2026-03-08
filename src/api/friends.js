@@ -13,8 +13,8 @@ const createFriends = (character_uuid) => {
  * 删除好友
  * @param {String} uuid - 好友 uuid
  */
-const deleteFriends = (uuid) => {
-    return http.post(`friends/delete/`, { uuid });
+const deleteFriends = (friend_uuid) => {
+    return http.post(`friends/delete/`, { friend_uuid });
 };
 
 /**

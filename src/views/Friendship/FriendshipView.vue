@@ -13,7 +13,7 @@
                 <div v-if="isLoading" class="mt-4">
                     <div class="loading loading-spinner loading-lg"></div>
                 </div>
-                <div v-else class="mt-2 text-center">
+                <div v-else class="mt-2 mb-4 text-center">
                     <div class="text-sm">没有更多好友了~</div>
                 </div>
             </div>
