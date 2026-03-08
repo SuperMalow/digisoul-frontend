@@ -9,7 +9,7 @@
                 <p class="card-text line-clamp-6 break-all">{{ character?.profile }}</p>
                 <div class="grid w-full mt-1">
                     <div class="flex items-center gap-2">
-                        <router-link :to="`/user/space/${character?.author_uuid}`"
+                        <router-link :to="`/user/space/${character?.author?.uuid}`"
                             class="cursor-pointer hover:scale-110 transition-all duration-300">
                             <img :src="character?.photo" alt="角色头像" class="w-6 h-6 object-cover rounded-2xl" />
                         </router-link>
@@ -27,8 +27,6 @@
 import { ref } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import ContenModal from '@/component/ContenModal/ContenModal.vue';
-import RemoveIcon from '@/component/Icon/RemoveIcon.vue';
-import EditIcon from '@/component/Icon/EditIcon.vue';
 import { deleteCharacter } from '@/api/character';
 import { ElMessage } from 'element-plus';
 

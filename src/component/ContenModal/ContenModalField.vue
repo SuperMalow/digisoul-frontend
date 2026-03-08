@@ -14,7 +14,7 @@
                     <div class="flex items-center gap-2 ml-auto">
                         <button v-if="!isFriend"
                             class="btn  btn-primary cursor-pointer rounded-full outline-none focus:ring-0"
-                            @click="isFriend = true">添加好友</button>
+                            @click="handlerAddFriends">添加好友</button>
                         <button v-else
                             class="btn  btn-error cursor-pointer rounded-full outline-none focus:ring-0 text-white"
                             @click="isFriend = false">删除好友</button>
@@ -22,24 +22,22 @@
                 </div>
                 <p class="mt-4 break-all">{{ content?.profile }}</p>
                 <div class="flex items-center gap-2 mt-4">
-                    <!-- <span class="text-sm text-gray-500">作者：{{ content.author_username }}</span> -->
+                    <span class="text-sm text-base-content/50">作者：{{ content?.author?.username }}</span>
                     <span class="text-sm text-base-content/50">创建于：{{ handleCreateTime(content?.created_at) }}</span>
                     <!-- 角色操作 -->
-                    <div v-if="operator && content?.author_uuid === userStore.uuid"
+                    <div v-if="operator && content?.author?.uuid === userStore.uuid"
                         class="dropdown dropdown-end ml-auto">
                         <div tabindex="0" role="button" class="btn btn-sm btn-circle m-1 btn-ghost">
                             <EllipsisIcon class="w-2 h-2" />
                         </div>
                         <ul tabindex="-1" class="dropdown-content bg-base-200/80 menu rounded-box z-1 w-26 shadow-sm">
                             <li>
-                                <router-link :to="`/create/character/update/${content?.uuid}`"
-                                    class="btn btn-sm text-primary btn-ghost cursor-pointer">
+                                <router-link :to="`/create/character/update/${content?.uuid}`" class="cursor-pointer">
                                     编辑角色
                                 </router-link>
                             </li>
                             <li>
-                                <button class="btn btn-sm text-error btn-ghost  cursor-pointer"
-                                    @click="deleteCharacterModalRef.showModal()">
+                                <button class="text-error cursor-pointer" @click="deleteCharacterModalRef.showModal()">
                                     删除角色
                                 </button>
                             </li>
@@ -73,9 +71,46 @@ import { useUserStore } from '@/stores/userStore';
 import EllipsisIcon from '@/component/Icon/EllipsisIcon.vue';
 import { ElMessage } from 'element-plus';
 import { deleteCharacter as deleteCharacterApi } from '@/api/character';
+import { createFriends as addFriendsApi, deleteFriends as deleteFriendsApi } from '@/api/friends';
 
 const userStore = useUserStore();
 
+// 添加好友
+const handlerAddFriends = async () => {
+    try {
+        const res = await addFriendsApi(props.content.uuid);
+        console.log('handlerAddFriends:', res)
+        if (res?.status === 200) {
+            ElMessage.success('添加好友成功');
+            isFriend.value = true;
+        } else {
+            console.log(res)
+            ElMessage.error(res?.data?.errors || '添加好友失败');
+        }
+    } catch (error) {
+        console.log(error);
+        ElMessage.error(error?.response?.data?.errors || '添加好友失败');
+    }
+}
+
+// 删除好友
+const handlerDeleteFriends = async () => {
+    try {
+        const res = await deleteFriendsApi(props.content.uuid);
+        console.log('handlerDeleteFriends:', res)
+        if (res?.status === 200) {
+            ElMessage.success('删除好友成功');
+            isFriend.value = false;
+        }
+        else {
+            console.log(res)
+            ElMessage.error(res?.data?.errors || '删除好友失败');
+        }
+    } catch (error) {
+        console.log(error);
+        ElMessage.error(error?.response?.data?.errors || '删除好友失败');
+    }
+}
 // 二次确认删除角色
 const deleteCharacterModalRef = ref(null);
 
@@ -99,9 +134,6 @@ const deleteCharacter = async () => {
     }
 }
 
-// 该角色是否为当前用户好友
-const isFriend = ref(false);
-
 const props = defineProps({
     content: {
         type: Object,
@@ -112,6 +144,11 @@ const props = defineProps({
         default: false,
     },
 });
+
+// 该角色是否为当前用户好友
+const isFriend = ref(
+    props.content?.is_friend?.me_uuid === userStore.uuid ? true : false
+);
 
 // 删除角色
 const emit = defineEmits(['remove']);

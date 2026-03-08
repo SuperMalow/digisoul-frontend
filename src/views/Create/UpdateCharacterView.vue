@@ -49,8 +49,8 @@
                         <!-- 介绍 -->
                         <fieldset class="fieldset ">
                             <legend class="fieldset-legend">介绍</legend>
-                            <textarea class="textarea w-full" v-model="character.profile"
-                                placeholder="请介绍一下角色吧 ~"></textarea>
+                            <textarea class="textarea w-full" v-model="character.profile" placeholder="请介绍一下角色吧 ~"
+                                rows="5"></textarea>
                         </fieldset>
 
                         <!-- 背景图片 -->

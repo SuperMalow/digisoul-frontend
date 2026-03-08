@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import ContenModalField from './ContenModalField.vue';
 
 const props = defineProps({
@@ -54,6 +54,10 @@ const handleClose = () => {
 const handleRemove = (uuid) => {
     emit('remove', uuid);
 }
+
+onMounted(() => {
+    console.log('content: ', props.content);
+});
 
 defineExpose({
     closeContenModal: handleClose,
