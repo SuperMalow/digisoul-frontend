@@ -21,19 +21,39 @@
 
 <!-- http://localhost:5173/user/space/123 -->
 <script setup>
-import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import SpaceUserInfoView from './SpaceUserInfoView.vue';
 import Character from '@/component/Space/Character.vue';
 import { getCharacterList } from '@/api/character';
 
 const route = useRoute();
-const user_id = route.params.user_id;
+const user_id = ref(route.params.user_id);
 
 const characters = ref([]);
 const isLoading = ref(false);
 const hasCharacters = ref(true);
 const sentinelRef = ref(null);
+
+// reset 函数
+const reset = () => {
+    characters.value = [];
+    characterPageInfo.page = 1;
+    characterPageInfo.page_size = 20;
+    characterPageInfo.total = 0;
+    characterPageInfo.next = null;
+    hasCharacters.value = true;
+    isLoading.value = false;
+
+    loadMoreCharacters();
+}
+
+// 监听路由参数与搜索词直接的绑定
+watch(() => route.params.user_id, (newVal) => {
+    console.log('用户ID: ', newVal);
+    user_id.value = newVal ?? null;
+    reset();
+});
 
 // 删除角色
 const removeCharacter = (uuid) => {
@@ -62,7 +82,7 @@ const loadMoreCharacters = async () => {
     isLoading.value = true;
     let newCharacters = [];
     try {
-        const response = await getCharacterList(user_id, characterPageInfo.page, characterPageInfo.page_size);
+        const response = await getCharacterList(user_id.value, characterPageInfo.page, characterPageInfo.page_size);
         if (response?.status === 200) {
             const data = response.data;
             console.log('获取到的角色数据: ', data);

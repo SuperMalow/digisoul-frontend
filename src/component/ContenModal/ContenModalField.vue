@@ -22,7 +22,11 @@
                 </div>
                 <p class="mt-4 break-all">{{ content?.profile }}</p>
                 <div class="flex items-center gap-2 mt-4">
-                    <span class="text-sm text-base-content/50">作者：{{ content?.author?.username }}</span>
+                    <span class="text-sm text-base-content/50">作者：
+                        <router-link :to="`/user/space/${content?.author?.uuid}`" class="cursor-pointer underline">
+                            @{{ content?.author?.username }}
+                        </router-link>
+                    </span>
                     <span class="text-sm text-base-content/50">创建于：{{ handleCreateTime(content?.created_at) }}</span>
                     <!-- 角色操作 -->
                     <div v-if="operator && content?.author?.uuid === userStore.uuid"

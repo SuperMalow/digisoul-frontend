@@ -168,7 +168,9 @@ const handleSubmit = async () => {
     isSubmitting.value = true;
     try {
         let payload;
+        console.log("photoFile.value ====> ", photoFile.value);
         if (photoFile.value) {
+            console.log("photoFile.value is not null");
             payload = new FormData();
             payload.append("username", form.value.username);
             payload.append("profile", form.value.profile);

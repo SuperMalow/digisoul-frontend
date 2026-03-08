@@ -6,7 +6,6 @@ import http from "./http";
  */
 const updateUserProfile = (data) => {
   const url = "user/profile/update/";
-  // FormData 时由 axios 自动设置 Content-Type（含 boundary），勿手动指定
   return http.post(url, data);
 };
 
