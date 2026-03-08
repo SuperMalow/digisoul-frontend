@@ -1,5 +1,5 @@
 <template>
-    <li class="list-row cursor-pointer" @click="handleSelectFriend">
+    <li class="list-row" @click="handleSelectFriend">
         <div><img class="size-10 rounded-box" :src="character?.photo" /></div>
         <div>
             <div>{{ character?.name }}</div>
@@ -9,7 +9,7 @@
             {{ character?.profile }}
         </p>
         <!-- 操作 -->
-        <button class="btn btn-square btn-ghost size-5" title="开始聊天">
+        <button @click.stop class="btn btn-square btn-ghost size-5" title="开始聊天">
             <div class="dropdown dropdown-end ml-auto">
                 <div tabindex="0" role="button">
                     <EllipsisIcon class="w-2 h-2" />

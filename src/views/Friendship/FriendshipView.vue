@@ -1,8 +1,9 @@
 <template>
-    <div class="flex w-full h-full min-h-0 overflow-hidden">
+    <!-- 仅本页：用视口高度自约束，滚动条限定在左右两栏内部，不撑大整页 -->
+    <div class="friendship-view-root flex w-full min-h-0 overflow-hidden">
         <!-- 左边好友列表：高度与主内容区一致，仅内部可滚动以支持流式加载 -->
-        <div class="w-1/3 flex flex-col rounded-r-2xl bg-base-100 min-h-0 shrink-0">
-            <div ref="friendListScrollRef" class="flex-1 min-h-0 overflow-y-auto">
+        <div class="w-1/3 flex flex-col rounded-r-2xl bg-base-100 min-h-0 shrink-0 overflow-hidden">
+            <div ref="friendListScrollRef" class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
                 <ul class="list bg-base-100 rounded-box shadow-md">
                     <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">好友列表</li>
                     <FriendshipCharacter v-for="friend, index in friends" :key="index" :character="friend.character"
@@ -140,4 +141,9 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+/* 仅本页：固定高度为视口减去导航栏，避免整页出现滚动条，滚动仅在左右栏内部 */
+.friendship-view-root {
+    height: calc(100dvh - 4rem);
+}
+</style>
