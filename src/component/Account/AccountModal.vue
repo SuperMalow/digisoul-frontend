@@ -1,6 +1,6 @@
 <template>
     <dialog id="my_modal" class="modal" :open="navbarStore.isOpenLoginModal">
-        <div class="modal-box bg-base-100 w-1/2 max-w-3xl">
+        <div class="modal-box bg-base-100 w-1/3 max-w-3xl">
             <form method="dialog">
                 <h3 class="text-xl font-bold text-center">
                     登录后免费体验
@@ -22,12 +22,12 @@
             </form>
             <div class="modal-body my-6 h-2/3">
                 <div class="flex w-full flex-row">
-                    <div class="flex-1 hidden lg:block">
+                    <!-- <div class="flex-1 hidden lg:block">
                         <ScanCodeLogin />
                     </div>
                     <div class="divider lg:divider-horizontal">
                         <span class="text-base font-bold hidden lg:block">OR</span>
-                    </div>
+                    </div> -->
                     <div class="flex-1 ">
                         <AccountLogin @closeLogin="closeLoginModal" />
                     </div>

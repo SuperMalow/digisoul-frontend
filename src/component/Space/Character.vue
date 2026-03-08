@@ -4,17 +4,6 @@
             <figure class="max-h-60">
                 <img :src="character?.background_photo" alt="角色背景"
                     class="object-cover hover:scale-110 transition-all duration-300 relative" draggable="false" />
-                <!-- <div v-if="canEdit && character?.author_uuid === userStore.uuid"
-                    class="absolute top-0 flex justify-center gap-2 w-full bg-black/20 rounded-t-2xl">
-                    <router-link :to="`/create/character/update/${character.uuid}`"
-                        class="btn btn-circle btn-ghost bg-transparent cursor-pointer">
-                        <EditIcon class="text-white" />
-                    </router-link>
-                    <button class="btn btn-circle btn-ghost bg-transparent cursor-pointer"
-                        @click="handlerRemoveCharacter">
-                        <RemoveIcon class="text-white" />
-                    </button>
-                </div> -->
             </figure>
             <div class="card-body">
                 <p class="card-text line-clamp-6 break-all">{{ character?.profile }}</p>
