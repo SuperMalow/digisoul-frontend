@@ -17,7 +17,7 @@
                 </div>
             </figure>
             <div class="card-body">
-                <p class="card-text line-clamp-2 break-all">{{ character?.profile }}</p>
+                <p class="card-text line-clamp-6 break-all">{{ character?.profile }}</p>
                 <div class="grid w-full mt-1">
                     <div class="flex items-center gap-2">
                         <router-link :to="`/user/space/${character?.author_uuid}`"
