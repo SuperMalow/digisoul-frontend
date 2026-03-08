@@ -1,9 +1,9 @@
 <template>
     <div class="drawer lg:drawer-open">
         <input id="my-drawer-4" type="checkbox" class="drawer-toggle" />
-        <div class="drawer-content">
+        <div class="drawer-content flex flex-col min-h-dvh">
             <!-- logo -->
-            <nav class="navbar w-full bg-base-100 shadow-sm">
+            <nav class="navbar w-full bg-base-100 shadow-sm shrink-0">
                 <div class="navbar-start">
                     <label for="my-drawer-4" aria-label="open sidebar" class="btn btn-square btn-ghost">
                         <MenuIcon />
@@ -45,8 +45,10 @@
                 </div>
             </nav>
 
-            <!-- 内容区域 -->
-            <slot></slot>
+            <!-- 内容区域：占满剩余高度，避免整页出现滚动条 -->
+            <div class="flex-1 min-h-0 overflow-hidden flex flex-col">
+                <slot></slot>
+            </div>
         </div>
 
         <!-- 侧边栏 -->
@@ -68,9 +70,9 @@
                     <li>
                         <router-link :to="{ name: 'friendship' }"
                             :class="{ 'bg-primary text-primary-content': currentRoute === 'friendship' }"
-                            class="is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="交友">
+                            class="is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="好友">
                             <FriendshipIcon />
-                            <span class="is-drawer-close:hidden">交友</span>
+                            <span class="is-drawer-close:hidden">好友</span>
                         </router-link>
                     </li>
                     <li>
