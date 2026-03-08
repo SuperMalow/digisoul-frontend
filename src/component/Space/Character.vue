@@ -1,9 +1,9 @@
 <template>
-    <div>
+    <div @click="isContenModalOpen = true">
         <div class="card card-compact bg-base-100 shadow-2xl rounded-2xl">
             <figure class="max-h-60">
                 <img :src="character?.background_photo" alt="角色背景"
-                    class="object-cover hover:scale-110 transition-all duration-300 relative" />
+                    class="object-cover hover:scale-110 transition-all duration-300 relative" draggable="false" />
                 <div v-if="canEdit && character?.author_uuid === userStore.uuid"
                     class="absolute top-0 flex justify-center gap-2 w-full bg-black/20 rounded-t-2xl">
                     <router-link :to="`/create/character/update/${character.uuid}`"
@@ -29,16 +29,21 @@
                 </div>
             </div>
         </div>
+        <!-- 打开内容modal -->
+        <ContenModal :content="character" v-model:open="isContenModalOpen" />
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { useUserStore } from '@/stores/userStore';
+import ContenModal from '@/component/ContenModal/ContenModal.vue';
 import RemoveIcon from '@/component/Icon/RemoveIcon.vue';
 import EditIcon from '@/component/Icon/EditIcon.vue';
 import { deleteCharacter } from '@/api/character';
 import { ElMessage } from 'element-plus';
+
+const isContenModalOpen = ref(false);
 
 const userStore = useUserStore();
 
