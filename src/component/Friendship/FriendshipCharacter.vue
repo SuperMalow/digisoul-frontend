@@ -1,12 +1,12 @@
 <template>
     <li class="list-row" @click="handleSelectFriend">
-        <div><img class="size-10 rounded-box" :src="character?.photo" /></div>
+        <div><img class="size-10 rounded-box" :src="friend?.character?.photo" /></div>
         <div>
-            <div>{{ character?.name }}</div>
-            <div class="text-xs uppercase font-semibold opacity-60">{{ character?.uuid }}</div>
+            <div>{{ friend?.character?.name }}</div>
+            <div class="text-xs uppercase font-semibold opacity-60">{{ friend?.character?.uuid }}</div>
         </div>
         <p class="list-col-wrap text-xs">
-            {{ character?.profile }}
+            {{ friend?.character?.profile }}
         </p>
         <!-- 操作 -->
         <button @click.stop class="btn btn-square btn-ghost size-5" title="开始聊天">
@@ -16,7 +16,8 @@
                 </div>
                 <ul tabindex="-1" class="dropdown-content bg-base-200/90 menu rounded-box z-1 w-22 shadow-sm">
                     <li>
-                        <router-link :to="`/user/space/${character?.author?.uuid}`" class="text-xs cursor-pointer">
+                        <router-link :to="`/user/space/${friend?.character?.author?.uuid}`"
+                            class="text-xs cursor-pointer">
                             进入空间
                         </router-link>
                     </li>
@@ -37,7 +38,7 @@ import EllipsisIcon from '@/component/Icon/EllipsisIcon.vue'
 const emit = defineEmits(['selectFriend']);
 
 const props = defineProps({
-    character: {
+    friend: {
         type: Object,
         required: true,
     },
@@ -45,7 +46,6 @@ const props = defineProps({
 
 // 选择好友
 const handleSelectFriend = () => {
-    console.log('handleSelectFriend:', props.character);
-    emit('selectFriend', props.character);
+    emit('selectFriend', props.friend);
 }
 </script>

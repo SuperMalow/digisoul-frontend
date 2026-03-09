@@ -4,7 +4,7 @@ import { useUserStore } from '@/stores/userStore';
 // 基础配置
 // 需要在 .env.development 中配置 VITE_API_URL
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/";
-const TIMEOUT = 5000;
+const TIMEOUT = 10000;
 const REFRESH_TOKEN_URL = 'token/refresh/';
 
 class Http {

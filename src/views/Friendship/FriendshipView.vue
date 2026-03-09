@@ -6,7 +6,7 @@
             <div ref="friendListScrollRef" class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
                 <ul class="list bg-base-100 rounded-box shadow-md">
                     <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">好友列表</li>
-                    <FriendshipCharacter v-for="friend, index in friends" :key="index" :character="friend.character"
+                    <FriendshipCharacter v-for="friend, index in friends" :key="index" :friend="friend"
                         @selectFriend="handlerSelectFriend" />
                 </ul>
                 <!--  流式布局哨兵 -->
@@ -22,7 +22,7 @@
         <!-- 右边聊天窗口 -->
         <div class="w-2/3 rounded-l-2xl bg-base-200 flex flex-col min-h-0 shrink-0 overflow-hidden">
             <div class="flex-1 flex flex-col min-h-0 border border-base-300 rounded-lg overflow-hidden bg-base-100">
-                <FriendshipChatWindow :character="selectedFriend" class="flex-1 min-h-0" />
+                <FriendshipChatWindow :friend="selectedFriend" class="flex-1 min-h-0" />
             </div>
         </div>
 
@@ -37,10 +37,12 @@ import { getFriendsList } from '@/api/friends';
 
 // 当前选中的好友
 const selectedFriend = ref(null);
-
+// 当前选中的好友 uuid
+const selectedFriendUuid = ref(null);
 // 选择好友
 const handlerSelectFriend = (friend) => {
     selectedFriend.value = friend;
+    selectedFriendUuid.value = friend.uuid;
 }
 
 const friends = ref([]);

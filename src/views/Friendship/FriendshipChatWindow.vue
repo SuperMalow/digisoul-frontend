@@ -1,13 +1,13 @@
 <template>
-    <div v-if="character" class="flex flex-col flex-1 min-h-0 overflow-hidden bg-base-100">
+    <div v-if="friend" class="flex flex-col flex-1 min-h-0 overflow-hidden bg-base-100">
         <!-- 头部：聊天对象 -->
         <header class="flex items-center gap-3 px-4 py-3 border-b border-base-300 shrink-0">
             <div class="avatar">
                 <div class="w-10 rounded-full ring-2 ring-base-300">
-                    <img :src="character.photo" :alt="character.name" />
+                    <img :src="friend.character?.photo" :alt="friend.character?.name" />
                 </div>
             </div>
-            <span class="font-semibold text-base truncate">{{ character.name }}</span>
+            <span class="font-semibold text-base truncate">{{ friend.character?.name }}</span>
         </header>
 
         <!-- 消息区域：仅此区域可滚动，保证输入框始终在视口内 -->
@@ -50,10 +50,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { ElMessage } from 'element-plus';
+import { sendMessageStream } from '@/api/friends';
 
 const props = defineProps({
-    character: {
+    friend: {
         type: Object,
         default: null,
     },
@@ -61,12 +63,36 @@ const props = defineProps({
 
 const inputText = ref('');
 const messages = ref([]);
+const isProcessing = ref(false);
 
-const send = () => {
+const send = async () => {
+    if (isProcessing.value) return;
+    isProcessing.value = true;
+
     const text = inputText.value.trim();
     if (!text) return;
     messages.value.push({ text, isMe: true });
     inputText.value = '';
     // TODO: 调用发送消息 API，并接收对方回复
+    try {
+        sendMessageStream({ friend_uuid: props.friend.uuid, message: text }, (data, isDone) => {
+            if (isDone) {
+                isProcessing.value = false;
+            } else if (data.content) {
+                console.log('接受消息 ==> ', data.content);
+            }
+        }, (error) => {
+            isProcessing.value = false;
+            console.log('流式发送消息失败 ==> ', error);
+        });
+    } catch (error) {
+        isProcessing.value = false;
+        console.log('发送消息失败 ==> ', error);
+        ElMessage.error(error?.response?.data?.errors || '发送消息失败');
+    }
 };
+
+onMounted(() => {
+    console.log('FriendshipChatWindow mounted ==> ', props.friend);
+});
 </script>

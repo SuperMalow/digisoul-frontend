@@ -1,4 +1,5 @@
 import http from "./http";
+import streamApi from "./streamApi";
 
 /**
  * 新增好友
@@ -26,4 +27,22 @@ const getFriendsList = (page = 1, page_size = 20) => {
     return http.get(`friends/list/?page=${page}&page_size=${page_size}`);
 };
 
-export { createFriends, deleteFriends, getFriendsList };
+/**
+ * 发送聊天消息
+ * @param {String} friend_uuid - 好友 uuid
+ * @param {String} message - 消息
+ */
+const sendMessage = (friend_uuid, message) => {
+    return http.post(`friends/message/chat/`, { friend_uuid: friend_uuid, message: message });
+};
+
+/**
+ * 发送聊天消息 - 流式
+ * @param {String} friend_uuid - 好友 uuid
+ * @param {String} message - 消息
+ */
+const sendMessageStream = (data, onmessage, onerror) => {
+    return streamApi(`friends/message/chat/`, { method: 'POST', body: data, onmessage, onerror });
+};
+
+export { createFriends, deleteFriends, getFriendsList, sendMessage, sendMessageStream };
