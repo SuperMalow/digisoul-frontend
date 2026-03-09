@@ -45,4 +45,14 @@ const sendMessageStream = (data, onmessage, onerror) => {
     return streamApi(`friends/message/chat/`, { method: 'POST', body: data, onmessage, onerror });
 };
 
-export { createFriends, deleteFriends, getFriendsList, sendMessage, sendMessageStream };
+/**
+ * 获取聊天消息历史
+ * @param {String} friend_uuid - 好友 uuid
+ * @param {Number} page - 页码
+ * @param {Number} page_size - 每页条数
+ */
+const getMessageHistory = (friend_uuid, page = 1, page_size = 20) => {
+    return http.get(`friends/message/history/?friend_uuid=${friend_uuid}&page=${page}&page_size=${page_size}`);
+};
+
+export { createFriends, deleteFriends, getFriendsList, sendMessage, sendMessageStream, getMessageHistory };
