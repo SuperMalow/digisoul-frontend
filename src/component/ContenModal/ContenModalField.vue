@@ -29,12 +29,12 @@
                     </span>
                     <span class="text-sm text-base-content/50">创建于：{{ handleCreateTime(content?.created_at) }}</span>
                     <!-- 角色操作 -->
-                    <div v-if="operator && content?.author?.uuid === userStore.uuid"
-                        class="dropdown dropdown-end ml-auto">
+                    <div class="dropdown dropdown-end ml-auto">
                         <div tabindex="0" role="button" class="btn btn-sm btn-circle m-1 btn-ghost">
                             <EllipsisIcon class="w-2 h-2" />
                         </div>
-                        <ul tabindex="-1" class="dropdown-content bg-base-200/80 menu rounded-box z-1 w-26 shadow-sm">
+                        <ul v-if="operator && content?.author?.uuid === userStore.uuid" tabindex="-1"
+                            class="dropdown-content bg-base-200/80 menu rounded-box z-1 w-26 shadow-sm">
                             <li>
                                 <router-link :to="`/create/character/update/${content?.uuid}`" class="cursor-pointer">
                                     编辑角色
@@ -44,6 +44,14 @@
                                 <button class="text-error cursor-pointer" @click="deleteCharacterModalRef.showModal()">
                                     删除角色
                                 </button>
+                            </li>
+                        </ul>
+                        <ul v-else tabindex="-1"
+                            class="dropdown-content bg-base-200/80 menu rounded-box z-1 w-24 text-center mx-auto shadow-sm">
+                            <li>
+                                <router-link :to="`/user/space/${content?.author?.uuid}`" class="cursor-pointer">
+                                    查看作者
+                                </router-link>
                             </li>
                         </ul>
                     </div>
