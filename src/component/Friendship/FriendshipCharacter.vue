@@ -5,7 +5,7 @@
             <div>{{ friend?.character?.name }}</div>
             <div class="text-xs uppercase font-semibold opacity-60">{{ friend?.character?.uuid }}</div>
         </div>
-        <p class="list-col-wrap text-xs">
+        <p class="list-col-wrap text-xs line-clamp-2 break-all">
             {{ friend?.character?.profile }}
         </p>
         <!-- 操作 -->
