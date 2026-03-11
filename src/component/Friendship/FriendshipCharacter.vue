@@ -22,9 +22,9 @@
                         </router-link>
                     </li>
                     <li>
-                        <a class="text-xs cursor-pointer text-error">
+                        <button type="button" class="text-xs cursor-pointer text-error" @click="handleDeleteFriend">
                             删除好友
-                        </a>
+                        </button>
                     </li>
                 </ul>
             </div>
@@ -35,7 +35,7 @@
 <script setup>
 import EllipsisIcon from '@/component/Icon/EllipsisIcon.vue'
 
-const emit = defineEmits(['selectFriend']);
+const emit = defineEmits(['selectFriend', 'deleteFriend']);
 
 const props = defineProps({
     friend: {
@@ -47,5 +47,11 @@ const props = defineProps({
 // 选择好友
 const handleSelectFriend = () => {
     emit('selectFriend', props.friend);
+}
+
+const handleDeleteFriend = () => {
+    // 取消聚焦
+    document.activeElement.blur();
+    emit('deleteFriend', props.friend);
 }
 </script>

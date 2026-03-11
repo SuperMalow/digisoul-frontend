@@ -7,7 +7,7 @@
                 <ul class="list bg-base-100 rounded-box shadow-md">
                     <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">好友列表</li>
                     <FriendshipCharacter v-for="friend, index in friends" :key="index" :friend="friend"
-                        @selectFriend="handlerSelectFriend" />
+                        @selectFriend="handlerSelectFriend" @deleteFriend="handleDeleteFriend" />
                 </ul>
                 <!--  流式布局哨兵 -->
                 <div ref="sentinelRef" class="h-2 mt-4 w-100"></div>
@@ -34,7 +34,8 @@
 import FriendshipCharacter from '@/component/Friendship/FriendshipCharacter.vue';
 import FriendshipChatWindow from '@/views/Friendship/FriendshipChatWindow.vue';
 import { ref, reactive, onMounted, nextTick, onUnmounted, watch } from 'vue';
-import { getFriendsList } from '@/api/friends';
+import { getFriendsList, deleteFriends } from '@/api/friends';
+import { ElMessage } from 'element-plus';
 
 // 当前选中的好友
 const selectedFriend = ref(null);
@@ -119,6 +120,26 @@ const checkSentinelInViewport = () => {
 // 删除好友
 const removeFriend = (uuid) => {
     friends.value = friends.value.filter(friend => friend.uuid !== uuid);
+}
+
+// 删除好友
+const handleDeleteFriend = async (friend) => {
+    try {
+        const res = await deleteFriends(friend.uuid);
+        if (res?.status === 200) {
+            ElMessage.success('删除好友成功');
+            removeFriend(friend.uuid);
+            if (selectedFriend.value?.uuid === friend.uuid) {
+                selectedFriend.value = null;
+                selectedFriendUuid.value = null;
+            }
+        } else {
+            console.log(res);
+            ElMessage.error(res?.data?.errors || '删除好友失败');
+        }
+    } catch (error) {
+        console.log('删除好友失败 ->', error);
+    }
 }
 
 let observer = null;
