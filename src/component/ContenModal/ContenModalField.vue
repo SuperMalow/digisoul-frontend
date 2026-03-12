@@ -48,6 +48,12 @@
                         </ul>
                         <ul v-else tabindex="-1"
                             class="dropdown-content bg-base-200/80 menu rounded-box z-1 w-24 text-center mx-auto shadow-sm">
+                            <li v-if="isFriend">
+                                <router-link :to="`/friendship/?friend_uuid=${content?.is_friend?.uuid}`"
+                                    class="cursor-pointer">
+                                    进入聊天
+                                </router-link>
+                            </li>
                             <li>
                                 <router-link :to="`/user/space/${content?.author?.uuid}`" class="cursor-pointer">
                                     查看作者
@@ -171,7 +177,7 @@ const handleCreateTime = (time) => {
 }
 
 onMounted(() => {
-    // console.log('content: ', props.content);
+    // console.log('character profile content ===> ', props.content);
 });
 
 </script>

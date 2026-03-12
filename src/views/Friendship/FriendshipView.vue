@@ -6,8 +6,14 @@
             <div ref="friendListScrollRef" class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
                 <ul class="list bg-base-100 rounded-box shadow-md">
                     <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">好友列表</li>
-                    <FriendshipCharacter v-for="friend, index in friends" :key="index" :friend="friend"
-                        @selectFriend="handlerSelectFriend" @deleteFriend="handleDeleteFriend" />
+                    <FriendshipCharacter
+                        v-for="friend, index in sortFriends"
+                        :key="index"
+                        :friend="friend"
+                        :is-selected="friend.uuid === selectedFriendUuid"
+                        @selectFriend="handlerSelectFriend"
+                        @deleteFriend="handleDeleteFriend"
+                    />
                 </ul>
                 <!--  流式布局哨兵 -->
                 <div ref="sentinelRef" class="h-2 mt-4 w-100"></div>
@@ -33,9 +39,23 @@
 <script setup>
 import FriendshipCharacter from '@/component/Friendship/FriendshipCharacter.vue';
 import FriendshipChatWindow from '@/views/Friendship/FriendshipChatWindow.vue';
-import { ref, reactive, onMounted, nextTick, onUnmounted, watch } from 'vue';
+import { ref, reactive, onMounted, nextTick, onUnmounted, watch, computed } from 'vue';
 import { getFriendsList, deleteFriends } from '@/api/friends';
 import { ElMessage } from 'element-plus';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+const friendUuid = ref(null);
+
+// 将好友列表进行排序
+const sortFriends = computed(() => {
+    // 现将当前query的friend_uuid好友排在最前面
+    const currentFriend = friends.value.find(friend => friend.uuid === friendUuid.value) ?? null;
+    if (currentFriend) {
+        return [currentFriend, ...friends.value.filter(friend => friend.uuid !== friendUuid.value)];
+    }
+    return friends.value;
+})
 
 // 当前选中的好友
 const selectedFriend = ref(null);
@@ -158,6 +178,18 @@ onMounted(async () => {
         );
         observer.observe(sentinelRef.value);
     }
+
+    watch(() => route.query.friend_uuid, (newVal) => {
+        if (newVal) {
+            friendUuid.value = newVal;
+            console.log('friendUuid: ', friendUuid.value);
+            const find_friend = friends.value.find(friend => friend.uuid === friendUuid.value);
+            console.log('find_friend: ', find_friend);
+            if (find_friend) {
+                handlerSelectFriend(find_friend);
+            }
+        }
+    }, { immediate: true });
 });
 
 onUnmounted(() => {

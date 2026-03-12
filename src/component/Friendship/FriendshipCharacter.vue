@@ -1,13 +1,15 @@
 <template>
-    <li class="list-row" @click="handleSelectFriend">
+    <li class="list-row transition-colors duration-150 cursor-pointer border border-transparent" :class="{
+        'bg-base-200/70 border-base-200 shadow-sm': isSelected,
+    }" @click="handleSelectFriend">
         <div><img class="size-10 rounded-box" :src="friend?.character?.photo" /></div>
         <div>
             <div>{{ friend?.character?.name }}</div>
             <div class="text-xs uppercase font-semibold opacity-60">{{ friend?.character?.uuid }}</div>
         </div>
-        <p class="list-col-wrap text-xs line-clamp-2 break-all">
+        <!-- <p class="list-col-wrap text-xs line-clamp-2 break-all">
             {{ friend?.character?.profile }}
-        </p>
+        </p> -->
         <!-- 操作 -->
         <button @click.stop class="btn btn-square btn-ghost size-5" title="开始聊天">
             <div class="dropdown dropdown-end ml-auto">
@@ -41,6 +43,10 @@ const props = defineProps({
     friend: {
         type: Object,
         required: true,
+    },
+    isSelected: {
+        type: Boolean,
+        default: false,
     },
 });
 

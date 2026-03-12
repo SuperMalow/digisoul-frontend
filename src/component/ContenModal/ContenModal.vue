@@ -56,7 +56,7 @@ const handleRemove = (uuid) => {
 }
 
 onMounted(() => {
-    console.log('content: ', props.content);
+    // console.log('content: ', props.content);
 });
 
 defineExpose({

@@ -1,17 +1,22 @@
 <template>
     <div v-if="friend" class="flex flex-col flex-1 min-h-0 overflow-hidden bg-base-100">
         <!-- 头部：聊天对象 -->
-        <header class="flex items-center gap-3 px-4 py-3 border-b border-base-300 shrink-0 shadow-2xl">
+        <header
+            class="flex items-center gap-3 px-4 py-3 shrink-0 border-b border-base-300/80 bg-gradient-to-b from-base-100 to-base-200/40 shadow-sm"
+        >
             <div class="avatar">
-                <div class="w-10 rounded-full ring-2 ring-base-300">
+                <div class="w-10 rounded-full ring-2 ring-base-300/90 ring-offset-1 ring-offset-base-100">
                     <img :src="friend.character?.photo" :alt="friend.character?.name" />
                 </div>
             </div>
-            <span class="font-semibold text-base truncate">{{ friend.character?.name }}</span>
+            <div class="min-w-0">
+                <span class="font-semibold text-base truncate block">{{ friend.character?.name }}</span>
+                <span class="text-xs text-base-content/55">聊天中</span>
+            </div>
         </header>
 
         <!-- 消息区域：仅此区域可滚动，保证输入框始终在视口内 -->
-        <section ref="scrollContainerRef" class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-2 bg-base-200/30">
+        <section ref="scrollContainerRef" class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-2 bg-base-200/20">
             <div v-if="!props.friend"
                 class="flex flex-col items-center justify-center h-full text-base-content/50 text-sm">
                 <span>暂无消息</span>
@@ -98,12 +103,14 @@ const loadHistoryMessages = async () => {
                 handlerPushfrontMessage({
                     role: 'assistant',
                     content: message.output,
-                    id: crypto.randomUUID()
+                    id: crypto.randomUUID(),
+                    created_at: message.created_at,
                 });
                 handlerPushfrontMessage({
                     role: 'user',
                     content: message.user_message,
-                    id: crypto.randomUUID()
+                    id: crypto.randomUUID(),
+                    created_at: message.created_at,
                 });
             }
             messagePageInfo.page += 1;
