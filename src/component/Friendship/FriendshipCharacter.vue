@@ -11,26 +11,25 @@
             {{ friend?.character?.profile }}
         </p> -->
         <!-- 操作 -->
-        <button @click.stop class="btn btn-square btn-ghost size-5" title="开始聊天">
-            <div class="dropdown dropdown-end ml-auto">
+        <div @click.stop class="dropdown dropdown-end ml-auto">
+            <div class="btn btn-square btn-ghost size-5" title="更多操作">
                 <div tabindex="0" role="button">
                     <EllipsisIcon class="w-2 h-2" />
                 </div>
-                <ul tabindex="-1" class="dropdown-content bg-base-200/90 menu rounded-box z-1 w-22 shadow-sm">
-                    <li>
-                        <router-link :to="`/user/space/${friend?.character?.author?.uuid}`"
-                            class="text-xs cursor-pointer">
-                            进入空间
-                        </router-link>
-                    </li>
-                    <li>
-                        <button type="button" class="text-xs cursor-pointer text-error" @click="handleDeleteFriend">
-                            删除好友
-                        </button>
-                    </li>
-                </ul>
             </div>
-        </button>
+            <ul tabindex="-1" class="dropdown-content bg-base-200/90 menu rounded-box z-1 w-22 shadow-sm">
+                <li>
+                    <router-link :to="`/user/space/${friend?.character?.author?.uuid}`" class="text-xs cursor-pointer">
+                        进入空间
+                    </router-link>
+                </li>
+                <li>
+                    <button type="button" class="text-xs cursor-pointer text-error" @click.stop="handleDeleteFriend">
+                        删除好友
+                    </button>
+                </li>
+            </ul>
+        </div>
     </li>
 </template>
 

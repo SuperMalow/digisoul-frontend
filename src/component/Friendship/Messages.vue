@@ -13,10 +13,14 @@
                 messages.content }}
             </div>
         </div>
-        <div v-else class="chat chat-end ms-auto my-2">
-            <!-- <div class="chat-header">
-                <time class="text-xs opacity-50">{{ handleCreateTime(messages.created_at) }}</time>
-            </div> -->
+        <div v-else-if="messages.role === 'interrupted' && messages.is_interrupted"
+            class="w-full flex justify-center my-2">
+            <span
+                class="badge badge-outline badge-sm px-3 py-2 text-xs text-base-content/70 border-base-300 bg-base-300 rounded-full">
+                已打断对话
+            </span>
+        </div>
+        <div v-else-if="messages.role === 'user'" class=" chat chat-end ms-auto my-2">
             <div
                 class="chat-bubble chat-bubble-success rounded-t-lg rounded-l-lg rounded-bl-lg whitespace-pre-wrap break-all">
                 {{
@@ -42,6 +46,8 @@ const props = defineProps({
 
 // 处理时间
 const handleCreateTime = (time) => {
+    console.log('handleCreateTime =====> ', time);
+    // if 
     const now = new Date();
     const messageTime = new Date(time);
     const diffTime = now.getTime() - messageTime.getTime();

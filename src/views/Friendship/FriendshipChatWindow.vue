@@ -136,6 +136,11 @@ const handlerPushbackMessage = (message) => {
     scrollToBottom();
 }
 
+// 将中断内容标记为真
+const handlerMarkInterrupted = () => {
+    messages.value.at(-3).is_interrupted = true;
+}
+
 // 将内容添加到列表最后的消息体中
 const addContentToLastMessage = (content) => {
     messages.value.at(-1).content += content;
@@ -162,6 +167,7 @@ const props = defineProps({
     },
 });
 
+// 输入框内容
 const inputText = ref('');
 
 // 打断说话
@@ -183,13 +189,17 @@ const send = async () => {
 
     inputText.value = '';
 
+    handlerPushbackMessage({ role: 'interrupted', is_interrupted: false, id: crypto.randomUUID() });
     handlerPushbackMessage({ role: 'user', content: text, id: crypto.randomUUID() });
     handlerPushbackMessage({ role: 'assistant', content: '', id: crypto.randomUUID() });
 
     // TODO: 调用发送消息 API，并接收对方回复
     try {
         sendMessageStream({ friend_uuid: props.friend.uuid, message: text }, (data, isDone) => {
-            if (currentProcesId !== procesId) return;
+            if (currentProcesId !== procesId) {
+                handlerMarkInterrupted();
+                return;
+            }
             if (data.content) {
                 console.log('接受消息 ==> ', data.content);
                 // 由于最后一条消息是属于助手，并且content为空，所以在流式接受信息时，一并加上内容
