@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 
 const props = defineProps({
     messages: {
@@ -48,6 +48,9 @@ const props = defineProps({
 const handleCreateTime = (time) => {
     console.log('handleCreateTime =====> ', time);
     // if 
+    if (time === undefined || time === null) {
+        return '';
+    }
     const now = new Date();
     const messageTime = new Date(time);
     const diffTime = now.getTime() - messageTime.getTime();
@@ -65,8 +68,18 @@ const handleCreateTime = (time) => {
     }
 }
 
+let updateTimeTimer = null;
+
 onMounted(() => {
     console.log('messages =====> ', props.messages);
+    // 1 分钟更新一次时间
+    updateTimeTimer = setInterval(() => {
+        handleCreateTime(props.messages.created_at);
+    }, 60 * 1000);
+});
+
+onUnmounted(() => {
+    clearInterval(updateTimeTimer);
 });
 
 </script>

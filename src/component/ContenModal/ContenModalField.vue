@@ -8,8 +8,11 @@
             <!-- 右边为角色的简介信息 -->
             <div class="w-1/2 p-4 m-4">
                 <div class="flex items-center gap-4">
-                    <img :src="content?.photo" alt="角色头像" class="w-10 h-10 object-cover rounded-full" />
-                    <h3 class="text-xl font-bold text-center">{{ content?.name }}</h3>
+                    <img :src="content?.photo" alt="角色头像" class="w-10 h-10 object-cover rounded-full" draggable="false"
+                        :class="{ 'cursor-pointer': isFriend }" @click="handlerGoToChat" />
+                    <span @click="handlerGoToChat" class="text-xl font-bold text-center"
+                        :class="{ 'cursor-pointer': isFriend }">{{ content?.name
+                        }}</span>
                     <!-- 好友状态 -->
                     <div class="flex items-center gap-2 ml-auto">
                         <button v-if="!isFriend"
@@ -49,10 +52,9 @@
                         <ul v-else tabindex="-1"
                             class="dropdown-content bg-base-200/80 menu rounded-box z-1 w-24 text-center mx-auto shadow-sm">
                             <li v-if="isFriend">
-                                <router-link :to="`/friendship/?friend_uuid=${content?.is_friend?.uuid}`"
-                                    class="cursor-pointer">
+                                <button class="cursor-pointer" @click="handlerGoToChat">
                                     进入聊天
-                                </router-link>
+                                </button>
                             </li>
                             <li>
                                 <router-link :to="`/user/space/${content?.author?.uuid}`" class="cursor-pointer">
@@ -90,8 +92,17 @@ import EllipsisIcon from '@/component/Icon/EllipsisIcon.vue';
 import { ElMessage } from 'element-plus';
 import { deleteCharacter as deleteCharacterApi } from '@/api/character';
 import { createFriends as addFriendsApi, deleteFriends as deleteFriendsApi } from '@/api/friends';
+import { useRouter } from 'vue-router';
 
 const userStore = useUserStore();
+
+const router = useRouter();
+
+// 跳转到聊天界面
+const handlerGoToChat = () => {
+    if (!isFriend.value) return;
+    router.push(`/friendship/?friend_uuid=${props.content?.is_friend?.uuid}`);
+}
 
 // 添加好友
 const handlerAddFriends = async () => {
