@@ -2,8 +2,7 @@
     <div v-if="friend" class="flex flex-col flex-1 min-h-0 overflow-hidden bg-base-100">
         <!-- 头部：聊天对象 -->
         <header
-            class="flex items-center gap-3 px-4 py-3 shrink-0 border-b border-base-300/80 bg-gradient-to-b from-base-100 to-base-200/40 shadow-sm"
-        >
+            class="flex items-center gap-3 px-4 py-3 shrink-0 border-b border-base-300/80 bg-gradient-to-b from-base-100 to-base-200/40 shadow-sm">
             <div class="avatar">
                 <div class="w-10 rounded-full ring-2 ring-base-300/90 ring-offset-1 ring-offset-base-100">
                     <img :src="friend.character?.photo" :alt="friend.character?.name" />
@@ -164,7 +163,9 @@ const props = defineProps({
 });
 
 const inputText = ref('');
-const isProcessing = ref(false);
+
+// 打断说话
+let procesId = 0;
 
 // 处理回车发送，避免中文输入法组字阶段误触发发送
 const handleEnterKey = (event) => {
@@ -173,12 +174,13 @@ const handleEnterKey = (event) => {
     send();
 };
 
+// 发送消息
 const send = async () => {
-    if (isProcessing.value) return;
-    isProcessing.value = true;
-
     const text = inputText.value.trim();
     if (!text) return;
+
+    const currentProcesId = ++procesId;
+
     inputText.value = '';
 
     handlerPushbackMessage({ role: 'user', content: text, id: crypto.randomUUID() });
@@ -187,19 +189,16 @@ const send = async () => {
     // TODO: 调用发送消息 API，并接收对方回复
     try {
         sendMessageStream({ friend_uuid: props.friend.uuid, message: text }, (data, isDone) => {
-            if (isDone) {
-                isProcessing.value = false;
-            } else if (data.content) {
+            if (currentProcesId !== procesId) return;
+            if (data.content) {
                 console.log('接受消息 ==> ', data.content);
                 // 由于最后一条消息是属于助手，并且content为空，所以在流式接受信息时，一并加上内容
                 addContentToLastMessage(data.content);
             }
         }, (error) => {
-            isProcessing.value = false;
             console.log('流式发送消息失败 ==> ', error);
         });
     } catch (error) {
-        isProcessing.value = false;
         console.log('发送消息失败 ==> ', error);
         ElMessage.error(error?.response?.data?.errors || '发送消息失败');
     }
