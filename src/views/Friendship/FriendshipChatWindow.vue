@@ -35,7 +35,7 @@
         <!-- 输入区 -->
         <footer class="flex gap-2 p-4 border-t border-base-300 shrink-0 bg-base-100">
             <input v-model="inputText" type="text" placeholder="输入消息..." class="input input-bordered w-full input-sm"
-                @keydown.enter.prevent="send" />
+                @keydown.enter.prevent="handleEnterKey" />
             <button type="button" class="btn btn-primary btn-sm shrink-0" :disabled="!inputText.trim()" @click="send">
                 发送
             </button>
@@ -158,6 +158,13 @@ const props = defineProps({
 
 const inputText = ref('');
 const isProcessing = ref(false);
+
+// 处理回车发送，避免中文输入法组字阶段误触发发送
+const handleEnterKey = (event) => {
+    // 中文输入法正在组字时，忽略回车
+    if (event.isComposing) return;
+    send();
+};
 
 const send = async () => {
     if (isProcessing.value) return;
