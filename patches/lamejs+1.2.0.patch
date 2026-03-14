@@ -1,0 +1,950 @@
+diff --git a/node_modules/lamejs/src/js/BitStream.js b/node_modules/lamejs/src/js/BitStream.js
+index dd9d69f..1a9822e 100644
+--- a/node_modules/lamejs/src/js/BitStream.js
++++ b/node_modules/lamejs/src/js/BitStream.js
+@@ -30,6 +30,7 @@ BitStream.NEQ = function (a, b) {
+ };
+ 
+ function BitStream() {
++    var Lame = require('./Lame.js');
+     var self = this;
+     var CRC16_POLYNOMIAL = 0x8005;
+ 
+@@ -788,7 +789,7 @@ function BitStream() {
+         /* find the gain and scale change required for no clipping */
+         if (gfc.findPeakSample) {
+             gfc.noclipGainChange = Math.ceil(Math
+-                        .log10(gfc.PeakSample / 32767.0) * 20.0 * 10.0) | 0;
++                .log10(gfc.PeakSample / 32767.0) * 20.0 * 10.0) | 0;
+             /* round up */
+ 
+             if (gfc.noclipGainChange > 0) {
+@@ -808,7 +809,7 @@ function BitStream() {
+                     gfc.noclipScale = -1;
+                 }
+             } else
+-            /* no clipping */
++                /* no clipping */
+                 gfc.noclipScale = -1;
+         }
+     };
+@@ -992,8 +993,8 @@ function BitStream() {
+ 
+                         if (gfc.findReplayGain)
+                             if (ga.AnalyzeSamples(gfc.rgdata, pcm_buf[0], 0,
+-                                    pcm_buf[1], 0, samples_out,
+-                                    gfc.channels_out) == GainAnalysis.GAIN_ANALYSIS_ERROR)
++                                pcm_buf[1], 0, samples_out,
++                                gfc.channels_out) == GainAnalysis.GAIN_ANALYSIS_ERROR)
+                                 return -6;
+ 
+                     }
+diff --git a/node_modules/lamejs/src/js/Encoder.js b/node_modules/lamejs/src/js/Encoder.js
+index 4fea74e..6ccf229 100644
+--- a/node_modules/lamejs/src/js/Encoder.js
++++ b/node_modules/lamejs/src/js/Encoder.js
+@@ -103,12 +103,13 @@ Encoder.MPG_MD_MS_LR = 2;
+ Encoder.MPG_MD_MS_I = 3;
+ 
+ Encoder.fircoef = [-0.0207887 * 5, -0.0378413 * 5,
+-    -0.0432472 * 5, -0.031183 * 5, 7.79609e-18 * 5, 0.0467745 * 5,
+-    0.10091 * 5, 0.151365 * 5, 0.187098 * 5];
++-0.0432472 * 5, -0.031183 * 5, 7.79609e-18 * 5, 0.0467745 * 5,
++0.10091 * 5, 0.151365 * 5, 0.187098 * 5];
+ 
+ function Encoder() {
+     var NewMDCT = require('./NewMDCT.js');
+     var III_psy_ratio = require('./III_psy_ratio.js');
++    var MPEGMode = require('./MPEGMode.js');
+ 
+     var FFTOFFSET = Encoder.FFTOFFSET;
+     var MPG_MD_MS_LR = Encoder.MPG_MD_MS_LR;
+@@ -161,7 +162,7 @@ function Encoder() {
+      *
+      * modifies some values in gfp.internal_flags.ATH (gfc.ATH)
+      */
+-//private void adjust_ATH(final LameInternalFlags gfc) {
++    //private void adjust_ATH(final LameInternalFlags gfc) {
+     function adjust_ATH(gfc) {
+         var gr2_max, max_pow;
+ 
+@@ -412,7 +413,7 @@ function Encoder() {
+         var pe = [[0., 0.], [0., 0.]];
+         var pe_MS = [[0., 0.], [0., 0.]];
+ 
+-//float[][] pe_use;
++        //float[][] pe_use;
+         var pe_use;
+ 
+         var ch, gr;
+@@ -644,7 +645,7 @@ function Encoder() {
+                 var j;
+                 for (j = 0; j < FFTOFFSET; j++)
+                     gfc.pinfo.pcmdata[ch][j] = gfc.pinfo.pcmdata[ch][j
+-                    + gfp.framesize];
++                        + gfp.framesize];
+                 for (j = FFTOFFSET; j < 1600; j++) {
+                     gfc.pinfo.pcmdata[ch][j] = inbuf[ch][j - FFTOFFSET];
+                 }
+diff --git a/node_modules/lamejs/src/js/Lame.js b/node_modules/lamejs/src/js/Lame.js
+index 0bae758..0e73f51 100644
+--- a/node_modules/lamejs/src/js/Lame.js
++++ b/node_modules/lamejs/src/js/Lame.js
+@@ -26,6 +26,7 @@ var Tables = require('./Tables.js');
+ var Encoder = require('./Encoder.js');
+ 
+ function Lame() {
++    var MPEGMode = require('./MPEGMode.js');
+     var self = this;
+     var LAME_MAXALBUMART = (128 * 1024);
+ 
+@@ -414,7 +415,7 @@ function Lame() {
+         for (var i = 2; i <= 14; i++) {
+             if (Tables.bitrate_table[version][i] > 0) {
+                 if (Math.abs(Tables.bitrate_table[version][i] - bRate) < Math
+-                        .abs(bitrate - bRate))
++                    .abs(bitrate - bRate))
+                     bitrate = Tables.bitrate_table[version][i];
+             }
+         }
+@@ -453,14 +454,14 @@ function Lame() {
+          * </PRE>
+          */
+         var freq_map = [new BandPass(8, 2000),
+-            new BandPass(16, 3700), new BandPass(24, 3900),
+-            new BandPass(32, 5500), new BandPass(40, 7000),
+-            new BandPass(48, 7500), new BandPass(56, 10000),
+-            new BandPass(64, 11000), new BandPass(80, 13500),
+-            new BandPass(96, 15100), new BandPass(112, 15600),
+-            new BandPass(128, 17000), new BandPass(160, 17500),
+-            new BandPass(192, 18600), new BandPass(224, 19400),
+-            new BandPass(256, 19700), new BandPass(320, 20500)];
++        new BandPass(16, 3700), new BandPass(24, 3900),
++        new BandPass(32, 5500), new BandPass(40, 7000),
++        new BandPass(48, 7500), new BandPass(56, 10000),
++        new BandPass(64, 11000), new BandPass(80, 13500),
++        new BandPass(96, 15100), new BandPass(112, 15600),
++        new BandPass(128, 17000), new BandPass(160, 17500),
++        new BandPass(192, 18600), new BandPass(224, 19400),
++        new BandPass(256, 19700), new BandPass(320, 20500)];
+ 
+         var table_index = self.nearestBitrateFullIndex(bitrate);
+         lh.lowerlimit = freq_map[table_index].lowpass;
+@@ -839,42 +840,42 @@ function Lame() {
+ 
+             switch (gfp.VBR) {
+                 case VbrMode.vbr_off:
+-                {
+-                    var lh = new LowPassHighPass();
+-                    optimum_bandwidth(lh, gfp.brate);
+-                    lowpass = lh.lowerlimit;
+-                    break;
+-                }
++                    {
++                        var lh = new LowPassHighPass();
++                        optimum_bandwidth(lh, gfp.brate);
++                        lowpass = lh.lowerlimit;
++                        break;
++                    }
+                 case VbrMode.vbr_abr:
+-                {
+-                    var lh = new LowPassHighPass();
+-                    optimum_bandwidth(lh, gfp.VBR_mean_bitrate_kbps);
+-                    lowpass = lh.lowerlimit;
+-                    break;
+-                }
++                    {
++                        var lh = new LowPassHighPass();
++                        optimum_bandwidth(lh, gfp.VBR_mean_bitrate_kbps);
++                        lowpass = lh.lowerlimit;
++                        break;
++                    }
+                 case VbrMode.vbr_rh:
+-                {
+-                    var x = [19500, 19000, 18600, 18000, 17500, 16000,
+-                        15600, 14900, 12500, 10000, 3950];
+-                    if (0 <= gfp.VBR_q && gfp.VBR_q <= 9) {
+-                        var a = x[gfp.VBR_q], b = x[gfp.VBR_q + 1], m = gfp.VBR_q_frac;
+-                        lowpass = linear_int(a, b, m);
+-                    } else {
+-                        lowpass = 19500;
++                    {
++                        var x = [19500, 19000, 18600, 18000, 17500, 16000,
++                            15600, 14900, 12500, 10000, 3950];
++                        if (0 <= gfp.VBR_q && gfp.VBR_q <= 9) {
++                            var a = x[gfp.VBR_q], b = x[gfp.VBR_q + 1], m = gfp.VBR_q_frac;
++                            lowpass = linear_int(a, b, m);
++                        } else {
++                            lowpass = 19500;
++                        }
++                        break;
+                     }
+-                    break;
+-                }
+                 default:
+-                {
+-                    var x = [19500, 19000, 18500, 18000, 17500, 16500,
+-                        15500, 14500, 12500, 9500, 3950];
+-                    if (0 <= gfp.VBR_q && gfp.VBR_q <= 9) {
+-                        var a = x[gfp.VBR_q], b = x[gfp.VBR_q + 1], m = gfp.VBR_q_frac;
+-                        lowpass = linear_int(a, b, m);
+-                    } else {
+-                        lowpass = 19500;
++                    {
++                        var x = [19500, 19000, 18500, 18000, 17500, 16500,
++                            15500, 14500, 12500, 9500, 3950];
++                        if (0 <= gfp.VBR_q && gfp.VBR_q <= 9) {
++                            var a = x[gfp.VBR_q], b = x[gfp.VBR_q + 1], m = gfp.VBR_q_frac;
++                            lowpass = linear_int(a, b, m);
++                        } else {
++                            lowpass = 19500;
++                        }
+                     }
+-                }
+             }
+             if (gfp.mode == MPEGMode.MONO
+                 && (gfp.VBR == VbrMode.vbr_off || gfp.VBR == VbrMode.vbr_abr))
+@@ -975,12 +976,12 @@ function Lame() {
+             case VbrMode.vbr_mt:
+             case VbrMode.vbr_rh:
+             case VbrMode.vbr_mtrh:
+-            {
+-                /* numbers are a bit strange, but they determine the lowpass value */
+-                var cmp = [5.7, 6.5, 7.3, 8.2, 10, 11.9, 13, 14,
+-                    15, 16.5];
+-                gfp.compression_ratio = cmp[gfp.VBR_q];
+-            }
++                {
++                    /* numbers are a bit strange, but they determine the lowpass value */
++                    var cmp = [5.7, 6.5, 7.3, 8.2, 10, 11.9, 13, 14,
++                        15, 16.5];
++                    gfp.compression_ratio = cmp[gfp.VBR_q];
++                }
+                 break;
+             case VbrMode.vbr_abr:
+                 gfp.compression_ratio = gfp.out_samplerate * 16 * gfc.channels_out
+@@ -1007,7 +1008,7 @@ function Lame() {
+             if (gfp.highpasswidth >= 0)
+                 gfc.highpass2 = 2. * (gfp.highpassfreq + gfp.highpasswidth);
+             else
+-            /* 0% above on default */
++                /* 0% above on default */
+                 gfc.highpass2 = (1 + 0.00) * 2. * gfp.highpassfreq;
+ 
+             gfc.highpass1 /= gfp.out_samplerate;
+@@ -1102,7 +1103,7 @@ function Lame() {
+         if (gfp.version == 1) /* MPEG 1 */
+             gfc.sideinfo_len = (gfc.channels_out == 1) ? 4 + 17 : 4 + 32;
+         else
+-        /* MPEG 2 */
++            /* MPEG 2 */
+             gfc.sideinfo_len = (gfc.channels_out == 1) ? 4 + 9 : 4 + 17;
+ 
+         if (gfp.error_protection)
+@@ -1130,103 +1131,103 @@ function Lame() {
+                 gfp.VBR = VbrMode.vbr_mtrh;
+             //$FALL-THROUGH$
+             case VbrMode.vbr_mtrh:
+-            {
+-                if (gfp.useTemporal == null) {
+-                    gfp.useTemporal = false;
+-                    /* off by default for this VBR mode */
+-                }
+-
+-                p.apply_preset(gfp, 500 - (gfp.VBR_q * 10), 0);
+-                /**
+-                 * <PRE>
+-                 *   The newer VBR code supports only a limited
+-                 *     subset of quality levels:
+-                 *     9-5=5 are the same, uses x^3/4 quantization
+-                 *   4-0=0 are the same  5 plus best huffman divide code
+-                 * </PRE>
+-                 */
+-                if (gfp.quality < 0)
+-                    gfp.quality = LAME_DEFAULT_QUALITY;
+-                if (gfp.quality < 5)
+-                    gfp.quality = 0;
+-                if (gfp.quality > 5)
+-                    gfp.quality = 5;
+-
+-                gfc.PSY.mask_adjust = gfp.maskingadjust;
+-                gfc.PSY.mask_adjust_short = gfp.maskingadjust_short;
+-
+-                /*
+-                 * sfb21 extra only with MPEG-1 at higher sampling rates
+-                 */
+-                if (gfp.experimentalY)
+-                    gfc.sfb21_extra = false;
+-                else
+-                    gfc.sfb21_extra = (gfp.out_samplerate > 44000);
++                {
++                    if (gfp.useTemporal == null) {
++                        gfp.useTemporal = false;
++                        /* off by default for this VBR mode */
++                    }
+ 
+-                gfc.iteration_loop = new VBRNewIterationLoop(qu);
+-                break;
++                    p.apply_preset(gfp, 500 - (gfp.VBR_q * 10), 0);
++                    /**
++                     * <PRE>
++                     *   The newer VBR code supports only a limited
++                     *     subset of quality levels:
++                     *     9-5=5 are the same, uses x^3/4 quantization
++                     *   4-0=0 are the same  5 plus best huffman divide code
++                     * </PRE>
++                     */
++                    if (gfp.quality < 0)
++                        gfp.quality = LAME_DEFAULT_QUALITY;
++                    if (gfp.quality < 5)
++                        gfp.quality = 0;
++                    if (gfp.quality > 5)
++                        gfp.quality = 5;
++
++                    gfc.PSY.mask_adjust = gfp.maskingadjust;
++                    gfc.PSY.mask_adjust_short = gfp.maskingadjust_short;
++
++                    /*
++                     * sfb21 extra only with MPEG-1 at higher sampling rates
++                     */
++                    if (gfp.experimentalY)
++                        gfc.sfb21_extra = false;
++                    else
++                        gfc.sfb21_extra = (gfp.out_samplerate > 44000);
++
++                    gfc.iteration_loop = new VBRNewIterationLoop(qu);
++                    break;
+ 
+-            }
++                }
+             case VbrMode.vbr_rh:
+-            {
++                {
+ 
+-                p.apply_preset(gfp, 500 - (gfp.VBR_q * 10), 0);
++                    p.apply_preset(gfp, 500 - (gfp.VBR_q * 10), 0);
+ 
+-                gfc.PSY.mask_adjust = gfp.maskingadjust;
+-                gfc.PSY.mask_adjust_short = gfp.maskingadjust_short;
++                    gfc.PSY.mask_adjust = gfp.maskingadjust;
++                    gfc.PSY.mask_adjust_short = gfp.maskingadjust_short;
+ 
+-                /*
+-                 * sfb21 extra only with MPEG-1 at higher sampling rates
+-                 */
+-                if (gfp.experimentalY)
+-                    gfc.sfb21_extra = false;
+-                else
+-                    gfc.sfb21_extra = (gfp.out_samplerate > 44000);
++                    /*
++                     * sfb21 extra only with MPEG-1 at higher sampling rates
++                     */
++                    if (gfp.experimentalY)
++                        gfc.sfb21_extra = false;
++                    else
++                        gfc.sfb21_extra = (gfp.out_samplerate > 44000);
+ 
+-                /*
+-                 * VBR needs at least the output of GPSYCHO, so we have to garantee
+-                 * that by setting a minimum quality level, actually level 6 does
+-                 * it. down to level 6
+-                 */
+-                if (gfp.quality > 6)
+-                    gfp.quality = 6;
++                    /*
++                     * VBR needs at least the output of GPSYCHO, so we have to garantee
++                     * that by setting a minimum quality level, actually level 6 does
++                     * it. down to level 6
++                     */
++                    if (gfp.quality > 6)
++                        gfp.quality = 6;
+ 
+-                if (gfp.quality < 0)
+-                    gfp.quality = LAME_DEFAULT_QUALITY;
++                    if (gfp.quality < 0)
++                        gfp.quality = LAME_DEFAULT_QUALITY;
+ 
+-                gfc.iteration_loop = new VBROldIterationLoop(qu);
+-                break;
+-            }
++                    gfc.iteration_loop = new VBROldIterationLoop(qu);
++                    break;
++                }
+ 
+             default: /* cbr/abr */
+-            {
+-                var vbrmode;
++                {
++                    var vbrmode;
+ 
+-                /*
+-                 * no sfb21 extra with CBR code
+-                 */
+-                gfc.sfb21_extra = false;
++                    /*
++                     * no sfb21 extra with CBR code
++                     */
++                    gfc.sfb21_extra = false;
+ 
+-                if (gfp.quality < 0)
+-                    gfp.quality = LAME_DEFAULT_QUALITY;
++                    if (gfp.quality < 0)
++                        gfp.quality = LAME_DEFAULT_QUALITY;
+ 
+-                vbrmode = gfp.VBR;
+-                if (vbrmode == VbrMode.vbr_off)
+-                    gfp.VBR_mean_bitrate_kbps = gfp.brate;
+-                /* second, set parameters depending on bitrate */
+-                p.apply_preset(gfp, gfp.VBR_mean_bitrate_kbps, 0);
+-                gfp.VBR = vbrmode;
++                    vbrmode = gfp.VBR;
++                    if (vbrmode == VbrMode.vbr_off)
++                        gfp.VBR_mean_bitrate_kbps = gfp.brate;
++                    /* second, set parameters depending on bitrate */
++                    p.apply_preset(gfp, gfp.VBR_mean_bitrate_kbps, 0);
++                    gfp.VBR = vbrmode;
+ 
+-                gfc.PSY.mask_adjust = gfp.maskingadjust;
+-                gfc.PSY.mask_adjust_short = gfp.maskingadjust_short;
++                    gfc.PSY.mask_adjust = gfp.maskingadjust;
++                    gfc.PSY.mask_adjust_short = gfp.maskingadjust_short;
+ 
+-                if (vbrmode == VbrMode.vbr_off) {
+-                    gfc.iteration_loop = new CBRNewIterationLoop(qu);
+-                } else {
+-                    gfc.iteration_loop = new ABRIterationLoop(qu);
++                    if (vbrmode == VbrMode.vbr_off) {
++                        gfc.iteration_loop = new CBRNewIterationLoop(qu);
++                    } else {
++                        gfc.iteration_loop = new ABRIterationLoop(qu);
++                    }
++                    break;
+                 }
+-                break;
+-            }
+         }
+         assert(gfp.scale >= 0);
+         /* initialize default values common for all modes */
+@@ -1577,7 +1578,7 @@ function Lame() {
+         /* Downsample to Mono if 2 channels in and 1 channel out */
+         if (gfp.num_channels == 2 && gfc.channels_out == 1) {
+             for (i = 0; i < nsamples; ++i) {
+-                in_buffer[0][i] = 0.5 * ( in_buffer[0][i] + in_buffer[1][i]);
++                in_buffer[0][i] = 0.5 * (in_buffer[0][i] + in_buffer[1][i]);
+                 in_buffer[1][i] = 0.0;
+             }
+         }
+@@ -1608,7 +1609,7 @@ function Lame() {
+             /* compute ReplayGain of resampled input if requested */
+             if (gfc.findReplayGain && !gfc.decode_on_the_fly)
+                 if (ga.AnalyzeSamples(gfc.rgdata, mfbuf[0], gfc.mf_size,
+-                        mfbuf[1], gfc.mf_size, n_out, gfc.channels_out) == GainAnalysis.GAIN_ANALYSIS_ERROR)
++                    mfbuf[1], gfc.mf_size, n_out, gfc.channels_out) == GainAnalysis.GAIN_ANALYSIS_ERROR)
+                     return -6;
+ 
+             /* update in_buffer counters */
+@@ -1791,7 +1792,7 @@ function Lame() {
+                 assert(j2 < len);
+                 assert(j2 + BLACKSIZE >= 0);
+                 y = (j2 < 0) ? inbuf_old[BLACKSIZE + j2] : inbuf[in_bufferPos
+-                + j2];
++                    + j2];
+                 xvalue += y * gfc.blackfilt[joff][i];
+             }
+             outbuf[outbufPos + k] = xvalue;
+@@ -1814,7 +1815,7 @@ function Lame() {
+         if (num_used.num_used >= BLACKSIZE) {
+             for (i = 0; i < BLACKSIZE; i++)
+                 inbuf_old[i] = inbuf[in_bufferPos + num_used.num_used + i
+-                - BLACKSIZE];
++                    - BLACKSIZE];
+         } else {
+             /* shift in num_used.num_used samples into inbuf_old */
+             var n_shift = BLACKSIZE - num_used.num_used;
+diff --git a/node_modules/lamejs/src/js/Presets.js b/node_modules/lamejs/src/js/Presets.js
+index a3de3c6..7789b4e 100644
+--- a/node_modules/lamejs/src/js/Presets.js
++++ b/node_modules/lamejs/src/js/Presets.js
+@@ -15,11 +15,12 @@ var new_int_n = common.new_int_n;
+ var assert = common.assert;
+ 
+ function Presets() {
++    var Lame = require('./Lame.js');
+     function VBRPresets(qual, comp, compS,
+-                        y, shThreshold, shThresholdS,
+-                        adj, adjShort, lower,
+-                        curve, sens, inter,
+-                        joint, mod, fix) {
++        y, shThreshold, shThresholdS,
++        adj, adjShort, lower,
++        curve, sens, inter,
++        joint, mod, fix) {
+         this.vbr_q = qual;
+         this.quant_comp = comp;
+         this.quant_comp_s = compS;
+@@ -38,10 +39,10 @@ function Presets() {
+     }
+ 
+     function ABRPresets(kbps, comp, compS,
+-                        joint, fix, shThreshold,
+-                        shThresholdS, bass, sc,
+-                        mask, lower, curve,
+-                        interCh, sfScale) {
++        joint, fix, shThreshold,
++        shThresholdS, bass, sc,
++        mask, lower, curve,
++        interCh, sfScale) {
+         this.quant_comp = comp;
+         this.quant_comp_s = compS;
+         this.safejoint = joint;
+@@ -356,59 +357,59 @@ function Presets() {
+         return preset;
+     }
+ 
+-    this.apply_preset = function(gfp, preset, enforce) {
++    this.apply_preset = function (gfp, preset, enforce) {
+         /* translate legacy presets */
+         switch (preset) {
+             case Lame.R3MIX:
+-            {
+-                preset = Lame.V3;
+-                gfp.VBR = VbrMode.vbr_mtrh;
+-                break;
+-            }
++                {
++                    preset = Lame.V3;
++                    gfp.VBR = VbrMode.vbr_mtrh;
++                    break;
++                }
+             case Lame.MEDIUM:
+-            {
+-                preset = Lame.V4;
+-                gfp.VBR = VbrMode.vbr_rh;
+-                break;
+-            }
++                {
++                    preset = Lame.V4;
++                    gfp.VBR = VbrMode.vbr_rh;
++                    break;
++                }
+             case Lame.MEDIUM_FAST:
+-            {
+-                preset = Lame.V4;
+-                gfp.VBR = VbrMode.vbr_mtrh;
+-                break;
+-            }
++                {
++                    preset = Lame.V4;
++                    gfp.VBR = VbrMode.vbr_mtrh;
++                    break;
++                }
+             case Lame.STANDARD:
+-            {
+-                preset = Lame.V2;
+-                gfp.VBR = VbrMode.vbr_rh;
+-                break;
+-            }
++                {
++                    preset = Lame.V2;
++                    gfp.VBR = VbrMode.vbr_rh;
++                    break;
++                }
+             case Lame.STANDARD_FAST:
+-            {
+-                preset = Lame.V2;
+-                gfp.VBR = VbrMode.vbr_mtrh;
+-                break;
+-            }
++                {
++                    preset = Lame.V2;
++                    gfp.VBR = VbrMode.vbr_mtrh;
++                    break;
++                }
+             case Lame.EXTREME:
+-            {
+-                preset = Lame.V0;
+-                gfp.VBR = VbrMode.vbr_rh;
+-                break;
+-            }
++                {
++                    preset = Lame.V0;
++                    gfp.VBR = VbrMode.vbr_rh;
++                    break;
++                }
+             case Lame.EXTREME_FAST:
+-            {
+-                preset = Lame.V0;
+-                gfp.VBR = VbrMode.vbr_mtrh;
+-                break;
+-            }
++                {
++                    preset = Lame.V0;
++                    gfp.VBR = VbrMode.vbr_mtrh;
++                    break;
++                }
+             case Lame.INSANE:
+-            {
+-                preset = 320;
+-                gfp.preset = preset;
+-                apply_abr_preset(gfp, preset, enforce);
+-                gfp.VBR = VbrMode.vbr_off;
+-                return preset;
+-            }
++                {
++                    preset = 320;
++                    gfp.preset = preset;
++                    apply_abr_preset(gfp, preset, enforce);
++                    gfp.VBR = VbrMode.vbr_off;
++                    return preset;
++                }
+         }
+ 
+         gfp.preset = preset;
+diff --git a/node_modules/lamejs/src/js/PsyModel.js b/node_modules/lamejs/src/js/PsyModel.js
+index e440280..c5000bd 100644
+--- a/node_modules/lamejs/src/js/PsyModel.js
++++ b/node_modules/lamejs/src/js/PsyModel.js
+@@ -160,6 +160,7 @@ var Encoder = require("./Encoder.js");
+ 
+ function PsyModel() {
+ 
++    var MPEGMode = require('./MPEGMode.js');
+     var fft = new FFT();
+ 
+     var LOG10 = 2.30258509299404568402;
+@@ -289,9 +290,9 @@ function PsyModel() {
+             fftenergy_s[b][0] *= fftenergy_s[b][0];
+             for (var j = Encoder.BLKSIZE_s / 2 - 1; j >= 0; --j) {
+                 var re = (wsamp_s[wsamp_sPos + 0])[b][Encoder.BLKSIZE_s
+-                / 2 - j];
++                    / 2 - j];
+                 var im = (wsamp_s[wsamp_sPos + 0])[b][Encoder.BLKSIZE_s
+-                / 2 + j];
++                    / 2 + j];
+                 fftenergy_s[b][Encoder.BLKSIZE_s / 2 - j] = NON_LINEAR_SCALE_ENERGY((re
+                     * re + im * im) * 0.5);
+             }
+@@ -376,26 +377,26 @@ function PsyModel() {
+     }
+ 
+     var table1 = [3.3246 * 3.3246,
+-        3.23837 * 3.23837, 3.15437 * 3.15437, 3.00412 * 3.00412,
+-        2.86103 * 2.86103, 2.65407 * 2.65407, 2.46209 * 2.46209,
+-        2.284 * 2.284, 2.11879 * 2.11879, 1.96552 * 1.96552,
+-        1.82335 * 1.82335, 1.69146 * 1.69146, 1.56911 * 1.56911,
+-        1.46658 * 1.46658, 1.37074 * 1.37074, 1.31036 * 1.31036,
+-        1.25264 * 1.25264, 1.20648 * 1.20648, 1.16203 * 1.16203,
+-        1.12765 * 1.12765, 1.09428 * 1.09428, 1.0659 * 1.0659,
+-        1.03826 * 1.03826, 1.01895 * 1.01895, 1];
++    3.23837 * 3.23837, 3.15437 * 3.15437, 3.00412 * 3.00412,
++    2.86103 * 2.86103, 2.65407 * 2.65407, 2.46209 * 2.46209,
++    2.284 * 2.284, 2.11879 * 2.11879, 1.96552 * 1.96552,
++    1.82335 * 1.82335, 1.69146 * 1.69146, 1.56911 * 1.56911,
++    1.46658 * 1.46658, 1.37074 * 1.37074, 1.31036 * 1.31036,
++    1.25264 * 1.25264, 1.20648 * 1.20648, 1.16203 * 1.16203,
++    1.12765 * 1.12765, 1.09428 * 1.09428, 1.0659 * 1.0659,
++    1.03826 * 1.03826, 1.01895 * 1.01895, 1];
+ 
+     var table2 = [1.33352 * 1.33352,
+-        1.35879 * 1.35879, 1.38454 * 1.38454, 1.39497 * 1.39497,
+-        1.40548 * 1.40548, 1.3537 * 1.3537, 1.30382 * 1.30382,
+-        1.22321 * 1.22321, 1.14758 * 1.14758, 1];
++    1.35879 * 1.35879, 1.38454 * 1.38454, 1.39497 * 1.39497,
++    1.40548 * 1.40548, 1.3537 * 1.3537, 1.30382 * 1.30382,
++    1.22321 * 1.22321, 1.14758 * 1.14758, 1];
+ 
+     var table3 = [2.35364 * 2.35364,
+-        2.29259 * 2.29259, 2.23313 * 2.23313, 2.12675 * 2.12675,
+-        2.02545 * 2.02545, 1.87894 * 1.87894, 1.74303 * 1.74303,
+-        1.61695 * 1.61695, 1.49999 * 1.49999, 1.39148 * 1.39148,
+-        1.29083 * 1.29083, 1.19746 * 1.19746, 1.11084 * 1.11084,
+-        1.03826 * 1.03826];
++    2.29259 * 2.29259, 2.23313 * 2.23313, 2.12675 * 2.12675,
++    2.02545 * 2.02545, 1.87894 * 1.87894, 1.74303 * 1.74303,
++    1.61695 * 1.61695, 1.49999 * 1.49999, 1.39148 * 1.39148,
++    1.29083 * 1.29083, 1.19746 * 1.19746, 1.11084 * 1.11084,
++    1.03826 * 1.03826];
+ 
+     /**
+      * addition of simultaneous masking Naoki Shibata 2000/7
+@@ -473,9 +474,9 @@ function PsyModel() {
+     }
+ 
+     var table2_ = [1.33352 * 1.33352,
+-        1.35879 * 1.35879, 1.38454 * 1.38454, 1.39497 * 1.39497,
+-        1.40548 * 1.40548, 1.3537 * 1.3537, 1.30382 * 1.30382,
+-        1.22321 * 1.22321, 1.14758 * 1.14758, 1];
++    1.35879 * 1.35879, 1.38454 * 1.38454, 1.39497 * 1.39497,
++    1.40548 * 1.40548, 1.3537 * 1.3537, 1.30382 * 1.30382,
++    1.22321 * 1.22321, 1.14758 * 1.14758, 1];
+ 
+     /**
+      * addition of simultaneous masking Naoki Shibata 2000/7
+@@ -611,7 +612,7 @@ function PsyModel() {
+             gfc.thm[3].l[sb] = Math.min(thmS, gfc.thm[3].l[sb]);
+         }
+ 
+-        athlower *= ( Encoder.BLKSIZE_s / Encoder.BLKSIZE);
++        athlower *= (Encoder.BLKSIZE_s / Encoder.BLKSIZE);
+         for (var sb = 0; sb < Encoder.SBMAX_s; sb++) {
+             for (var sblock = 0; sblock < 3; sblock++) {
+                 var thmLR, thmM, thmS, ath;
+@@ -785,9 +786,9 @@ function PsyModel() {
+         var gfc = gfp.internal_flags;
+ 
+         if (gfp.short_blocks == ShortBlock.short_block_coupled
+-                /* force both channels to use the same block type */
+-                /* this is necessary if the frame is to be encoded in ms_stereo. */
+-                /* But even without ms_stereo, FhG does this */
++            /* force both channels to use the same block type */
++            /* this is necessary if the frame is to be encoded in ms_stereo. */
++            /* But even without ms_stereo, FhG does this */
+             && !(uselongblock[0] != 0 && uselongblock[1] != 0))
+             uselongblock[0] = uselongblock[1] = 0;
+ 
+@@ -960,7 +961,7 @@ function PsyModel() {
+                 a = 20.0
+                     * (m * 3.0 - a)
+                     / (a * (gfc.numlines_l[b - 1] + gfc.numlines_l[b]
+-                    + gfc.numlines_l[b + 1] - 1));
++                        + gfc.numlines_l[b + 1] - 1));
+                 var k = 0 | a;
+                 if (k > last_tab_entry)
+                     k = last_tab_entry;
+@@ -1034,8 +1035,8 @@ function PsyModel() {
+             numchn = 4;
+ 
+         if (gfp.VBR == VbrMode.vbr_off)
+-            pcfact = gfc.ResvMax == 0 ? 0 : ( gfc.ResvSize)
+-            / gfc.ResvMax * 0.5;
++            pcfact = gfc.ResvMax == 0 ? 0 : (gfc.ResvSize)
++                / gfc.ResvMax * 0.5;
+         else if (gfp.VBR == VbrMode.vbr_rh || gfp.VBR == VbrMode.vbr_mtrh
+             || gfp.VBR == VbrMode.vbr_mt) {
+             pcfact = 0.6;
+@@ -1060,10 +1061,10 @@ function PsyModel() {
+                 for (j = 0; j < ((NSFIRLEN - 1) / 2) - 1; j += 2) {
+                     sum1 += fircoef[j]
+                         * (firbuf[firbufPos + i + j] + firbuf[firbufPos + i
+-                        + NSFIRLEN - j]);
++                            + NSFIRLEN - j]);
+                     sum2 += fircoef[j + 1]
+                         * (firbuf[firbufPos + i + j + 1] + firbuf[firbufPos
+-                        + i + NSFIRLEN - j - 1]);
++                            + i + NSFIRLEN - j - 1]);
+                 }
+                 ns_hpfsmpl[chn][i] = sum1 + sum2;
+             }
+@@ -1312,7 +1313,7 @@ function PsyModel() {
+                         thr[b] = NS_INTERP(
+                             Math.min(ecb, Math.min(rpelev
+                                 * gfc.nb_1[chn][b], rpelev2
+-                                * gfc.nb_2[chn][b])), ecb, pcfact);
++                            * gfc.nb_2[chn][b])), ecb, pcfact);
+ 
+                     gfc.nb_2[chn][b] = gfc.nb_1[chn][b];
+                     gfc.nb_1[chn][b] = ecb;
+@@ -1468,9 +1469,9 @@ function PsyModel() {
+     }
+ 
+     var fircoef_ = [-8.65163e-18 * 2,
+-        -0.00851586 * 2, -6.74764e-18 * 2, 0.0209036 * 2,
+-        -3.36639e-17 * 2, -0.0438162 * 2, -1.54175e-17 * 2,
+-        0.0931738 * 2, -5.52212e-17 * 2, -0.313819 * 2];
++    -0.00851586 * 2, -6.74764e-18 * 2, 0.0209036 * 2,
++    -3.36639e-17 * 2, -0.0438162 * 2, -1.54175e-17 * 2,
++    0.0931738 * 2, -5.52212e-17 * 2, -0.313819 * 2];
+ 
+     /**
+      * Apply HPF of fs/4 to the input signal. This is used for attack detection
+@@ -1496,10 +1497,10 @@ function PsyModel() {
+                 for (var j = 0; j < ((NSFIRLEN - 1) / 2) - 1; j += 2) {
+                     sum1 += fircoef_[j]
+                         * (firbuf[firbufPos + i + j] + firbuf[firbufPos + i
+-                        + NSFIRLEN - j]);
++                            + NSFIRLEN - j]);
+                     sum2 += fircoef_[j + 1]
+                         * (firbuf[firbufPos + i + j + 1] + firbuf[firbufPos
+-                        + i + NSFIRLEN - j - 1]);
++                            + i + NSFIRLEN - j - 1]);
+                 }
+                 ns_hpfsmpl[chn][i] = sum1 + sum2;
+             }
+@@ -1628,7 +1629,7 @@ function PsyModel() {
+ 
+             if (gfc.nsPsy.lastAttacks[chn] == 3
+                 || (ns_attacks[chn][0] + ns_attacks[chn][1]
+-                + ns_attacks[chn][2] + ns_attacks[chn][3]) != 0) {
++                    + ns_attacks[chn][2] + ns_attacks[chn][3]) != 0) {
+                 ns_uselongblock = 0;
+ 
+                 if (ns_attacks[chn][1] != 0 && ns_attacks[chn][0] != 0) {
+@@ -1707,7 +1708,7 @@ function PsyModel() {
+                 a = 20.0
+                     * (m * 3.0 - a)
+                     / (a * (gfc.numlines_s[b - 1] + gfc.numlines_s[b]
+-                    + gfc.numlines_s[b + 1] - 1));
++                        + gfc.numlines_s[b + 1] - 1));
+                 var k = 0 | a;
+                 if (k > last_tab_entry)
+                     k = last_tab_entry;
+@@ -1949,9 +1950,9 @@ function PsyModel() {
+         var gfc = gfp.internal_flags;
+ 
+         if (gfp.short_blocks == ShortBlock.short_block_coupled
+-                /* force both channels to use the same block type */
+-                /* this is necessary if the frame is to be encoded in ms_stereo. */
+-                /* But even without ms_stereo, FhG does this */
++            /* force both channels to use the same block type */
++            /* this is necessary if the frame is to be encoded in ms_stereo. */
++            /* But even without ms_stereo, FhG does this */
+             && !(uselongblock[0] != 0 && uselongblock[1] != 0))
+             uselongblock[0] = uselongblock[1] = 0;
+ 
+@@ -2071,7 +2072,7 @@ function PsyModel() {
+ 
+         /* block type */
+         var ns_attacks = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],
+-            [0, 0, 0, 0]];
++        [0, 0, 0, 0]];
+         var uselongblock = new_int(2);
+ 
+         /* usual variables like loop indices, etc.. */
+@@ -2380,7 +2381,7 @@ function PsyModel() {
+             b_frq[i] = sfreq * j;
+ 
+             for (j2 = j; freq2bark(sfreq * j2) - bark1 < DELBARK
+-            && j2 <= blksize / 2; j2++)
++                && j2 <= blksize / 2; j2++)
+                 ;
+ 
+             numlines[i] = j2 - j;
+@@ -2432,7 +2433,7 @@ function PsyModel() {
+             /* setup stereo demasking thresholds */
+             /* formula reverse enginerred from plot in paper */
+             arg = freq2bark(sfreq * scalepos[sfb] * deltafreq);
+-            arg = ( Math.min(arg, 15.5) / 15.5);
++            arg = (Math.min(arg, 15.5) / 15.5);
+ 
+             mld[sfb] = Math.pow(10.0,
+                 1.25 * (1 - Math.cos(Math.PI * arg)) - 2.5);
+@@ -2602,7 +2603,7 @@ function PsyModel() {
+         gfc.npart_l = init_numline(gfc.numlines_l, gfc.bo_l, gfc.bm_l, bval,
+             bval_width, gfc.mld_l, gfc.PSY.bo_l_weight, sfreq,
+             Encoder.BLKSIZE, gfc.scalefac_band.l, Encoder.BLKSIZE
+-            / (2.0 * 576), Encoder.SBMAX_l);
++        / (2.0 * 576), Encoder.SBMAX_l);
+         assert(gfc.npart_l < Encoder.CBANDS);
+         /* compute the spreading function */
+         for (i = 0; i < gfc.npart_l; i++) {
+@@ -2671,7 +2672,7 @@ function PsyModel() {
+         gfc.npart_s = init_numline(gfc.numlines_s, gfc.bo_s, gfc.bm_s, bval,
+             bval_width, gfc.mld_s, gfc.PSY.bo_s_weight, sfreq,
+             Encoder.BLKSIZE_s, gfc.scalefac_band.s, Encoder.BLKSIZE_s
+-            / (2.0 * 192), Encoder.SBMAX_s);
++        / (2.0 * 192), Encoder.SBMAX_s);
+         assert(gfc.npart_s < Encoder.CBANDS);
+ 
+         /* SNR formula. short block is normalized by SNR. is it still right ? */
+diff --git a/node_modules/lamejs/src/js/QuantizePVT.js b/node_modules/lamejs/src/js/QuantizePVT.js
+index ef69bef..95984eb 100644
+--- a/node_modules/lamejs/src/js/QuantizePVT.js
++++ b/node_modules/lamejs/src/js/QuantizePVT.js
+@@ -50,7 +50,7 @@ QuantizePVT.LARGE_BITS = 100000;
+ QuantizePVT.IXMAX_VAL = 8206;
+ 
+ function QuantizePVT() {
+-
++    var BitStream = require('./BitStream.js');
+     var tak = null;
+     var rv = null;
+     var psy = null;
+@@ -137,67 +137,67 @@ function QuantizePVT() {
+     this.sfBandIndex = [
+         // Table B.2.b: 22.05 kHz
+         new ScaleFac([0, 6, 12, 18, 24, 30, 36, 44, 54, 66, 80, 96, 116, 140, 168, 200, 238, 284, 336, 396, 464,
+-                522, 576],
++            522, 576],
+             [0, 4, 8, 12, 18, 24, 32, 42, 56, 74, 100, 132, 174, 192]
+             , [0, 0, 0, 0, 0, 0, 0] //  sfb21 pseudo sub bands
+             , [0, 0, 0, 0, 0, 0, 0] //  sfb12 pseudo sub bands
+         ),
+         /* Table B.2.c: 24 kHz */ /* docs: 332. mpg123(broken): 330 */
+         new ScaleFac([0, 6, 12, 18, 24, 30, 36, 44, 54, 66, 80, 96, 114, 136, 162, 194, 232, 278, 332, 394, 464,
+-                540, 576],
++            540, 576],
+             [0, 4, 8, 12, 18, 26, 36, 48, 62, 80, 104, 136, 180, 192]
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb21 pseudo sub bands */
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb12 pseudo sub bands */
+         ),
+         /* Table B.2.a: 16 kHz */
+         new ScaleFac([0, 6, 12, 18, 24, 30, 36, 44, 54, 66, 80, 96, 116, 140, 168, 200, 238, 284, 336, 396, 464,
+-                522, 576],
++            522, 576],
+             [0, 4, 8, 12, 18, 26, 36, 48, 62, 80, 104, 134, 174, 192]
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb21 pseudo sub bands */
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb12 pseudo sub bands */
+         ),
+         /* Table B.8.b: 44.1 kHz */
+         new ScaleFac([0, 4, 8, 12, 16, 20, 24, 30, 36, 44, 52, 62, 74, 90, 110, 134, 162, 196, 238, 288, 342, 418,
+-                576],
++            576],
+             [0, 4, 8, 12, 16, 22, 30, 40, 52, 66, 84, 106, 136, 192]
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb21 pseudo sub bands */
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb12 pseudo sub bands */
+         ),
+         /* Table B.8.c: 48 kHz */
+         new ScaleFac([0, 4, 8, 12, 16, 20, 24, 30, 36, 42, 50, 60, 72, 88, 106, 128, 156, 190, 230, 276, 330, 384,
+-                576],
++            576],
+             [0, 4, 8, 12, 16, 22, 28, 38, 50, 64, 80, 100, 126, 192]
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb21 pseudo sub bands */
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb12 pseudo sub bands */
+         ),
+         /* Table B.8.a: 32 kHz */
+         new ScaleFac([0, 4, 8, 12, 16, 20, 24, 30, 36, 44, 54, 66, 82, 102, 126, 156, 194, 240, 296, 364, 448, 550,
+-                576],
++            576],
+             [0, 4, 8, 12, 16, 22, 30, 42, 58, 78, 104, 138, 180, 192]
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb21 pseudo sub bands */
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb12 pseudo sub bands */
+         ),
+         /* MPEG-2.5 11.025 kHz */
+         new ScaleFac([0, 6, 12, 18, 24, 30, 36, 44, 54, 66, 80, 96, 116, 140, 168, 200, 238, 284, 336, 396, 464,
+-                522, 576],
++            522, 576],
+             [0 / 3, 12 / 3, 24 / 3, 36 / 3, 54 / 3, 78 / 3, 108 / 3, 144 / 3, 186 / 3, 240 / 3, 312 / 3,
+-                402 / 3, 522 / 3, 576 / 3]
++            402 / 3, 522 / 3, 576 / 3]
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb21 pseudo sub bands */
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb12 pseudo sub bands */
+         ),
+         /* MPEG-2.5 12 kHz */
+         new ScaleFac([0, 6, 12, 18, 24, 30, 36, 44, 54, 66, 80, 96, 116, 140, 168, 200, 238, 284, 336, 396, 464,
+-                522, 576],
++            522, 576],
+             [0 / 3, 12 / 3, 24 / 3, 36 / 3, 54 / 3, 78 / 3, 108 / 3, 144 / 3, 186 / 3, 240 / 3, 312 / 3,
+-                402 / 3, 522 / 3, 576 / 3]
++            402 / 3, 522 / 3, 576 / 3]
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb21 pseudo sub bands */
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb12 pseudo sub bands */
+         ),
+         /* MPEG-2.5 8 kHz */
+         new ScaleFac([0, 12, 24, 36, 48, 60, 72, 88, 108, 132, 160, 192, 232, 280, 336, 400, 476, 566, 568, 570,
+-                572, 574, 576],
++            572, 574, 576],
+             [0 / 3, 24 / 3, 48 / 3, 72 / 3, 108 / 3, 156 / 3, 216 / 3, 288 / 3, 372 / 3, 480 / 3, 486 / 3,
+-                492 / 3, 498 / 3, 576 / 3]
++            492 / 3, 498 / 3, 576 / 3]
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb21 pseudo sub bands */
+             , [0, 0, 0, 0, 0, 0, 0] /*  sfb12 pseudo sub bands */
+         )
+@@ -419,7 +419,7 @@ function QuantizePVT() {
+      * bugfixes rh 8/01: often allocated more than the allowed 4095 bits
+      */
+     this.on_pe = function (gfp, pe,
+-                           targ_bits, mean_bits, gr, cbr) {
++        targ_bits, mean_bits, gr, cbr) {
+         var gfc = gfp.internal_flags;
+         var tbits = 0, bits;
+         var add_bits = new_int(2);

@@ -46,6 +46,14 @@ const sendMessageStream = (data, onmessage, onerror) => {
 };
 
 /**
+ * 发送语音消息
+ * @param {Blob} audio - 语音文件
+ */
+const sendAudioMessage = (audio) => {
+    return http.post(`friends/message/audio/`, { audio });
+};
+
+/**
  * 获取聊天消息历史
  * @param {String} friend_uuid - 好友 uuid
  * @param {Number} page - 页码
@@ -55,4 +63,4 @@ const getMessageHistory = (friend_uuid, page = 1, page_size = 20) => {
     return http.get(`friends/message/history/?friend_uuid=${friend_uuid}&page=${page}&page_size=${page_size}`);
 };
 
-export { createFriends, deleteFriends, getFriendsList, sendMessage, sendMessageStream, getMessageHistory };
+export { createFriends, deleteFriends, getFriendsList, sendMessage, sendMessageStream, sendAudioMessage, getMessageHistory };

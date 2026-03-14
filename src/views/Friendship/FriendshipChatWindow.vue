@@ -40,6 +40,9 @@
         <footer class="flex gap-2 p-4 border-t border-base-300 shrink-0 bg-base-100">
             <input v-model="inputText" type="text" placeholder="输入消息..." class="input input-bordered w-full input-sm"
                 @keydown.enter.prevent="handleEnterKey" />
+            <!-- 麦克风输入按钮 -->
+            <MicPhoneInput @updateInputText="updateInputText" @interrupted="interruptedMessage" @sendMessage="send" />
+            <!-- 发送按钮 -->
             <button type="button" class="btn btn-primary btn-sm shrink-0" :disabled="!inputText.trim()" @click="send">
                 发送
             </button>
@@ -56,6 +59,7 @@ import { ref, onMounted, nextTick, onUnmounted, reactive, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { sendMessageStream, getMessageHistory } from '@/api/friends';
 import Messages from '@/component/Friendship/Messages.vue';
+import MicPhoneInput from '@/views/Friendship/MicPhoneInput.vue';
 
 // 流式加载哨兵
 const sentinelRef = ref(null);
@@ -167,22 +171,72 @@ const props = defineProps({
     },
 });
 
+// 修改用户发送消息为语音消息
+const changeUserMessageToAudio = (audioPayload) => {
+    if (!audioPayload?.audioUrl) return;
+
+    const pendingUserMessage = messages.value.at(-2);
+    if (pendingUserMessage?.role === 'user' && pendingUserMessage.is_audio) {
+        // 替换旧 URL，避免泄漏
+        if (pendingUserMessage.audio_url && pendingUserMessage.audio_url !== audioPayload.audioUrl) {
+            URL.revokeObjectURL(pendingUserMessage.audio_url);
+        }
+        pendingUserMessage.content = audioPayload.audio_url;
+        pendingUserMessage.audio_url = audioPayload.audio_url;
+        pendingUserMessage.audio_duration = audioPayload.audio_duration;
+        // pendingUserMessage.audio_pcm_blob = audioPayload.pcmBlob;
+        // pendingUserMessage.audio_wav_blob = audioPayload.wavBlob;
+        scrollToBottom();
+        return;
+    }
+
+    // 如果当前没有“占位语音消息”，则新增一条用户语音消息
+    handlerPushbackMessage({
+        role: 'user',
+        content: audioPayload.audioUrl,
+        id: crypto.randomUUID(),
+        is_audio: true,
+        audio_url: audioPayload.audioUrl,
+        audio_duration: audioPayload.duration,
+        audio_pcm_blob: audioPayload.pcmBlob,
+        audio_wav_blob: audioPayload.wavBlob,
+    });
+    scrollToBottom();
+}
+
+// 通过录音识别到文字进行更新
+const updateInputText = (audioPayload) => {
+    console.log('将录制的声音传递出来，并显示 => ', audioPayload);
+    changeUserMessageToAudio(audioPayload);
+}
+
 // 输入框内容
 const inputText = ref('');
 
 // 打断说话
 let procesId = 0;
 
+// 打断AI说话
+const interruptedMessage = () => {
+    ++procesId;
+}
+
 // 处理回车发送，避免中文输入法组字阶段误触发发送
 const handleEnterKey = (event) => {
     // 中文输入法正在组字时，忽略回车
     if (event.isComposing) return;
-    send();
+    send(event);
 };
 
 // 发送消息
-const send = async () => {
-    const text = inputText.value.trim();
+const send = async (event, audio_messages = null) => {
+    let text;
+    if (audio_messages) {
+        // 发送的语音消息
+        text = audio_messages;
+    } else {
+        text = inputText.value.trim();
+    }
     if (!text) return;
 
     const currentProcesId = ++procesId;
@@ -190,7 +244,11 @@ const send = async () => {
     inputText.value = '';
 
     handlerPushbackMessage({ role: 'interrupted', is_interrupted: false, id: crypto.randomUUID() });
-    handlerPushbackMessage({ role: 'user', content: text, id: crypto.randomUUID() });
+    if (audio_messages) {
+        handlerPushbackMessage({ role: 'user', content: null, id: crypto.randomUUID(), is_audio: true });
+    } else {
+        handlerPushbackMessage({ role: 'user', content: text, id: crypto.randomUUID(), is_audio: false });
+    }
     handlerPushbackMessage({ role: 'assistant', content: '', id: crypto.randomUUID() });
 
     // TODO: 调用发送消息 API，并接收对方回复
@@ -233,6 +291,11 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+    messages.value.forEach((message) => {
+        if (message?.audio_url) {
+            URL.revokeObjectURL(message.audio_url);
+        }
+    });
     if (observer) observer.disconnect();
 });
 </script>

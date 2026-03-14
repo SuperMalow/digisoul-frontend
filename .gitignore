@@ -15,3 +15,6 @@ dist/
 
 # System files
 .DS_Store
+
+# vad modele
+public/vad/
