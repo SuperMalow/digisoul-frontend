@@ -25,7 +25,7 @@ import { MicVAD } from '@ricky0123/vad-web';
 import { Mp3Encoder } from '@breezystack/lamejs';
 import { sendAudioMessage } from '@/api/friends';
 
-const emit = defineEmits(['updateInputText', 'interrupted', 'sendMessage']);
+const emit = defineEmits(['updateInputText', 'interrupted', 'sendMessage', 'sendMessageSuccess']);
 // 具体的语音模型存放路径
 const baseUrl = import.meta.env.VITE_VAD_BASE_URL || "http://localhost:5173/vad/";
 const onnxWasmBaseUrl = import.meta.env.VITE_ONNX_WASM_BASE_URL || baseUrl;
@@ -154,6 +154,8 @@ const sendToBackend = async (pcm16ArrayBuffer, sampleCount) => {
         if (res?.status === 200) {
             emit('sendMessage', null, res?.data?.text, mp3Blob);
             console.log("发送语音消息成功 ==> ", res);
+            // 将消息的status设置为true
+            emit('sendMessageSuccess')
         }
     } catch (e) {
         console.log('发送语音文件识别错误 ==> ', e);

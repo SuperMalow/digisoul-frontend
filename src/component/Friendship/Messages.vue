@@ -12,6 +12,11 @@
             <div class="chat-bubble rounded-t-lg rounded-r-lg rounded-br-lg whitespace-pre-wrap break-all">{{
                 messages.content }}
             </div>
+            <!-- 如果是最后一条user消息并且status为真才显示发送成功 -->
+            <!-- <div class="chat-footer opacity-50" v-if="messages.id === last_messages_id && messages.status">success</div>
+            <div v-else-if="messages.id === last_messages_id && !messages.status" class="chat-footer opacity-50">
+                <div class="loading loading-spinner loading-xs mt-2"></div>
+            </div> -->
         </div>
         <div v-else-if="messages.role === 'interrupted' && messages.is_interrupted"
             class="w-full flex justify-center my-2">
@@ -43,6 +48,11 @@
                     {{ messages.content }}
                 </template>
             </div>
+            <!-- 如果是最后一条user消息并且status为真才显示发送成功 -->
+            <div class="chat-footer opacity-50" v-if="messages.id === last_messages_id && messages.status">success</div>
+            <div v-else-if="messages.id === last_messages_id && !messages.status" class="chat-footer opacity-50">
+                <div class="loading loading-spinner loading-xs mt-2"></div>
+            </div>
         </div>
     </div>
 </template>
@@ -59,6 +69,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    last_messages_id: {
+        type: String,
+        required: true,
+    }
 });
 
 const audioRef = ref(null);
@@ -165,7 +179,7 @@ watch(() => props.messages.content, () => {
 
 // 处理时间
 const handleCreateTime = (time) => {
-    console.log('handleCreateTime =====> ', time);
+    // console.log('handleCreateTime =====> ', time);
     if (time === undefined || time === null) {
         return '';
     }

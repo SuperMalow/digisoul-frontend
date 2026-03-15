@@ -32,7 +32,7 @@
 
                 <!-- 流式加载历史消息 -->
                 <Messages v-model:scroll-container="scrollContainerRef" v-for="message in messages" :key="message.id"
-                    :messages="message" :character="friend.character" />
+                    :messages="message" :character="friend.character" :last_messages_id="last_user_message_id" />
             </div>
         </section>
 
@@ -41,7 +41,8 @@
             <input v-model="inputText" type="text" placeholder="输入消息..." class="input input-bordered w-full input-sm"
                 @keydown.enter.prevent="handleEnterKey" />
             <!-- 麦克风输入按钮 -->
-            <MicPhoneInput @updateInputText="updateInputText" @interrupted="interruptedMessage" @sendMessage="send" />
+            <MicPhoneInput @updateInputText="updateInputText" @interrupted="interruptedMessage" @sendMessage="send"
+                @sendMessageSuccess="handlerSendMessageSuccess" />
             <!-- 发送按钮 -->
             <button type="button" class="btn btn-primary btn-sm shrink-0" :disabled="!inputText.trim()" @click="send">
                 发送
@@ -55,11 +56,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, onUnmounted, reactive, watch } from 'vue';
+import { ref, onMounted, nextTick, onUnmounted, reactive, watch, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { sendMessageStream, getMessageHistory } from '@/api/friends';
 import Messages from '@/component/Friendship/Messages.vue';
 import MicPhoneInput from '@/views/Friendship/MicPhoneInput.vue';
+
+
+// 最后一个用户消息的id
+const last_user_message_id = computed(() => {
+    // return messages.value.findLast(message => message.role === 'user')?.id || null;
+    return messages.value.at(-1)?.id || null;
+})
 
 // 流式加载哨兵
 const sentinelRef = ref(null);
@@ -108,6 +116,7 @@ const loadHistoryMessages = async () => {
                     content: message.output,
                     id: crypto.randomUUID(),
                     created_at: message.created_at,
+                    status: true,
                 });
                 handlerPushfrontMessage({
                     role: 'user',
@@ -116,6 +125,7 @@ const loadHistoryMessages = async () => {
                     audio_url: message.audio_message ? message.audio_message : null,
                     id: crypto.randomUUID(),
                     created_at: message.created_at,
+                    status: true,
                 });
             }
             messagePageInfo.page += 1;
@@ -127,6 +137,15 @@ const loadHistoryMessages = async () => {
                 loadHistoryMessages();
             }
         }
+    }
+}
+
+// 发送消息成功后，将status置为真
+const handlerSendMessageSuccess = () => {
+    const lastUserMessage = messages.value.at(-1) ?? null;
+    if (lastUserMessage) {
+        lastUserMessage.status = true;
+        scrollToBottom();
     }
 }
 
@@ -177,19 +196,6 @@ const props = defineProps({
 const changeUserMessageToAudio = (audioPayload) => {
     if (!audioPayload?.audio_url) return;
 
-    const pendingUserMessage = messages.value.at(-2);
-    if (pendingUserMessage?.role === 'user' && pendingUserMessage.is_audio) {
-        // 替换旧 URL，避免泄漏
-        if (pendingUserMessage.audio_url && pendingUserMessage.audio_url !== audioPayload.audio_url) {
-            URL.revokeObjectURL(pendingUserMessage.audio_url);
-        }
-        pendingUserMessage.content = audioPayload.audio_url;
-        pendingUserMessage.audio_url = audioPayload.audio_url;
-        pendingUserMessage.audio_duration = audioPayload.audio_duration;
-        scrollToBottom();
-        return;
-    }
-
     // 如果当前没有“占位语音消息”，则新增一条用户语音消息
     handlerPushbackMessage({
         role: 'user',
@@ -198,6 +204,7 @@ const changeUserMessageToAudio = (audioPayload) => {
         is_audio: true,
         audio_url: audioPayload.audio_url,
         audio_duration: audioPayload.audio_duration,
+        status: false,
     });
     scrollToBottom();
 }
@@ -242,13 +249,13 @@ const send = async (event, audio_messages = null, audio_files = null) => {
 
     inputText.value = '';
 
-    handlerPushbackMessage({ role: 'interrupted', is_interrupted: false, id: crypto.randomUUID() });
+    handlerPushbackMessage({ role: 'interrupted', is_interrupted: false, id: crypto.randomUUID(), status: true });
     if (audio_messages) {
         // handlerPushbackMessage({ role: 'user', content: null, id: crypto.randomUUID(), is_audio: true });
     } else {
-        handlerPushbackMessage({ role: 'user', content: text, id: crypto.randomUUID(), is_audio: false });
+        handlerPushbackMessage({ role: 'user', content: text, id: crypto.randomUUID(), is_audio: false, status: false });
     }
-    handlerPushbackMessage({ role: 'assistant', content: '', id: crypto.randomUUID() });
+    handlerPushbackMessage({ role: 'assistant', content: '', id: crypto.randomUUID(), status: true });
 
     // TODO: 调用发送消息 API，并接收对方回复
     try {
@@ -270,6 +277,7 @@ const send = async (event, audio_messages = null, audio_files = null) => {
                 console.log('接受消息 ==> ', data.content);
                 // 由于最后一条消息是属于助手，并且content为空，所以在流式接受信息时，一并加上内容
                 addContentToLastMessage(data.content);
+                handlerSendMessageSuccess();
             }
         }, (error) => {
             console.log('流式发送消息失败 ==> ', error);
