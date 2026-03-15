@@ -56,7 +56,7 @@ const startRecording = async () => {
                 startOnLoad: false,
                 onSpeechStart: () => {
                     // 开始说话的时候，打断AI
-                    // emit('interrupted');
+                    emit('interrupted');
                     console.log("开始说话...");
                     isSpeaking.value = true;
                 },
