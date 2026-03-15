@@ -12,6 +12,20 @@
                 <span class="font-semibold text-base truncate block">{{ friend.character?.name }}</span>
                 <span class="text-xs text-base-content/55">聊天中</span>
             </div>
+            <!-- TTS 语音回复开关 -->
+            <button type="button" class="ml-auto btn btn-ghost btn-circle btn-sm transition-colors"
+                :class="isTtsEnabled ? 'text-primary' : 'text-base-content/40'" @click="isTtsEnabled = !isTtsEnabled"
+                :title="isTtsEnabled ? '关闭语音回复' : '开启语音回复'">
+                <!-- <svg v-if="isTtsEnabled" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+                </svg> -->
+                <!-- 音量开启icon -->
+                <VolumeIcon v-if="isTtsEnabled" />
+                <!-- 音量关闭icon -->
+                <VolumeIconClose v-else />
+            </button>
         </header>
 
         <!-- 消息区域：仅此区域可滚动，保证输入框始终在视口内 -->
@@ -61,6 +75,8 @@ import { ElMessage } from 'element-plus';
 import { sendMessageStream, getMessageHistory } from '@/api/friends';
 import Messages from '@/component/Friendship/Messages.vue';
 import MicPhoneInput from '@/views/Friendship/MicPhoneInput.vue';
+import VolumeIcon from '@/component/Icon/VolumeIcon.vue';
+import VolumeIconClose from '@/component/Icon/VolumeIconClose.vue';
 
 
 // 最后一个用户消息的id
@@ -114,6 +130,8 @@ const loadHistoryMessages = async () => {
                 handlerPushfrontMessage({
                     role: 'assistant',
                     content: message.output,
+                    is_audio: message.tts_audio ? true : false,
+                    audio_url: message.tts_audio ? message.tts_audio : null,
                     id: crypto.randomUUID(),
                     created_at: message.created_at,
                     status: true,
@@ -218,12 +236,82 @@ const updateInputText = (audioPayload) => {
 // 输入框内容
 const inputText = ref('');
 
+// TTS 语音回复开关
+const isTtsEnabled = ref(true);
+
 // 打断说话
 let procesId = 0;
+
+// ─── 逐句渐进式 TTS 播放 ───
+let currentAudio = null;
+const playbackQueue = [];
+let isAudioPlaying = false;
+
+const buildAudioBlob = (chunks) => {
+    const arrays = chunks.map(b64 => {
+        const binary = atob(b64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return bytes;
+    });
+    const totalLen = arrays.reduce((s, a) => s + a.length, 0);
+    const merged = new Uint8Array(totalLen);
+    let off = 0;
+    for (const a of arrays) { merged.set(a, off); off += a.length; }
+    return new Blob([merged], { type: 'audio/mp3' });
+};
+
+const playNextFromQueue = () => {
+    if (playbackQueue.length === 0) {
+        isAudioPlaying = false;
+        currentAudio = null;
+        return;
+    }
+    isAudioPlaying = true;
+    const blob = playbackQueue.shift();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    currentAudio = audio;
+    audio.play().catch(e => console.warn('TTS 播放失败:', e));
+    audio.onended = () => {
+        URL.revokeObjectURL(url);
+        playNextFromQueue();
+    };
+};
+
+// 将音频块添加到队列中
+const enqueueSentenceAudio = (chunks) => {
+    if (!chunks.length) return;
+    playbackQueue.push(buildAudioBlob(chunks));
+    if (!isAudioPlaying) playNextFromQueue();
+};
+
+// 将语音添加到AI消息当中
+const addAudioToAssistantMessage = (allAudioChunks) => {
+    const blob = buildAudioBlob(allAudioChunks);
+    const audioUrl = URL.createObjectURL(blob);
+    const lastMessage = messages.value.at(-1);
+    if (lastMessage && lastMessage.role === 'assistant') {
+        lastMessage.is_audio = true;
+        lastMessage.audio_url = audioUrl;
+    }
+    scrollToBottom();
+}
+
+const stopAllAudio = () => {
+    if (currentAudio) {
+        currentAudio.pause();
+        URL.revokeObjectURL(currentAudio.src);
+        currentAudio = null;
+    }
+    playbackQueue.length = 0;
+    isAudioPlaying = false;
+};
 
 // 打断AI说话
 const interruptedMessage = () => {
     ++procesId;
+    stopAllAudio();
 }
 
 // 处理回车发送，避免中文输入法组字阶段误触发发送
@@ -257,7 +345,10 @@ const send = async (event, audio_messages = null, audio_files = null) => {
     }
     handlerPushbackMessage({ role: 'assistant', content: '', id: crypto.randomUUID(), status: true });
 
-    // TODO: 调用发送消息 API，并接收对方回复
+    const enableTts = isTtsEnabled.value;
+    let sentenceChunks = [];
+    let allAudioChunks = [];
+
     try {
         let bodyData;
         if (audio_files) {
@@ -265,19 +356,38 @@ const send = async (event, audio_messages = null, audio_files = null) => {
             bodyData.append('friend_uuid', props.friend.uuid);
             bodyData.append('message', text);
             bodyData.append('audio_files', audio_files, 'audio.mp3');
+            if (enableTts) bodyData.append('enable_tts', 'true');
         } else {
             bodyData = { friend_uuid: props.friend.uuid, message: text };
+            if (enableTts) bodyData.enable_tts = 'true';
         }
         sendMessageStream(bodyData, (data, isDone) => {
             if (currentProcesId !== procesId) {
                 handlerMarkInterrupted();
                 return;
             }
+            if (isDone) {
+                if (sentenceChunks.length > 0) {
+                    enqueueSentenceAudio(sentenceChunks);
+                    sentenceChunks = [];
+                }
+                if (allAudioChunks.length > 0) {
+                    addAudioToAssistantMessage(allAudioChunks)
+                    allAudioChunks = [];
+                }
+                return;
+            }
             if (data.content) {
-                console.log('接受消息 ==> ', data.content);
-                // 由于最后一条消息是属于助手，并且content为空，所以在流式接受信息时，一并加上内容
                 addContentToLastMessage(data.content);
                 handlerSendMessageSuccess();
+            }
+            if (data.audio) {
+                sentenceChunks.push(data.audio);
+                allAudioChunks.push(data.audio);
+            }
+            if (data.audio_end) {
+                enqueueSentenceAudio(sentenceChunks);
+                sentenceChunks = [];
             }
         }, (error) => {
             console.log('流式发送消息失败 ==> ', error);
@@ -312,6 +422,7 @@ onUnmounted(() => {
             URL.revokeObjectURL(message.audio_url);
         }
     });
+    stopAllAudio();
     if (observer) observer.disconnect();
 });
 </script>

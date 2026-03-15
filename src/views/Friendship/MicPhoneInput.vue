@@ -68,8 +68,8 @@ const startRecording = async () => {
                     await stopRecording();
                     sendToBackend(pcm16, sampleCount);
                 },
-                positiveSpeechThreshold: 0.5,
-                negativeSpeechThreshold: 0.5,
+                positiveSpeechThreshold: 0.3,
+                negativeSpeechThreshold: 0.3,
                 minSpeechFrames: 2,
                 redemptionFrames: 12,
             });

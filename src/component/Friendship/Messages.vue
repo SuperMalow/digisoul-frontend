@@ -11,12 +11,20 @@
             </div>
             <div class="chat-bubble rounded-t-lg rounded-r-lg rounded-br-lg whitespace-pre-wrap break-all">{{
                 messages.content }}
+                <div v-if="messages.is_audio && messages.audio_url" class="mt-1.5 pt-1.5 border-t border-current/15">
+                    <button type="button"
+                        class="inline-flex items-center gap-[0.45rem] border-none bg-transparent cursor-pointer p-0 text-[0.86rem] opacity-80 hover:opacity-100 transition-opacity"
+                        @click="toggleAudioPlay">
+                        <!-- 音量icon -->
+                        <VolumeIcon :isPlaying="isPlaying" />
+                        <span>{{ isPlaying ? '正在播放' : '语音消息' }}</span>
+                        <span class="opacity-80 text-xs">{{ formatDuration(displayDuration) }}</span>
+                    </button>
+                    <audio ref="audioRef" :src="messages.audio_url" preload="metadata" @ended="handleAudioEnded"
+                        @loadedmetadata="handleLoadedMetadata" @timeupdate="handleAudioTimeUpdate"
+                        @play="handleAudioPlay" @pause="handleAudioPause"></audio>
+                </div>
             </div>
-            <!-- 如果是最后一条user消息并且status为真才显示发送成功 -->
-            <!-- <div class="chat-footer opacity-50" v-if="messages.id === last_messages_id && messages.status">success</div>
-            <div v-else-if="messages.id === last_messages_id && !messages.status" class="chat-footer opacity-50">
-                <div class="loading loading-spinner loading-xs mt-2"></div>
-            </div> -->
         </div>
         <div v-else-if="messages.role === 'interrupted' && messages.is_interrupted"
             class="w-full flex justify-center my-2">
@@ -59,6 +67,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import VolumeIcon from '@/component/Icon/VolumeIcon.vue';
 
 const props = defineProps({
     messages: {
