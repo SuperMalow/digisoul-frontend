@@ -112,6 +112,8 @@ const loadHistoryMessages = async () => {
                 handlerPushfrontMessage({
                     role: 'user',
                     content: message.user_message,
+                    is_audio: message.audio_message ? true : false,
+                    audio_url: message.audio_message ? message.audio_message : null,
                     id: crypto.randomUUID(),
                     created_at: message.created_at,
                 });

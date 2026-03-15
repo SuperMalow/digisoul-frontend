@@ -29,9 +29,14 @@
                         @click="toggleAudioPlay">
                         <span class="ms-2">{{ isPlaying ? '正在播放' : '语音消息' }}</span>
                         <span class="opacity-80 text-xs">{{ formatDuration(displayDuration) }}</span>
-                        <audio ref="audioRef" :src="messages.content" preload="metadata" @ended="handleAudioEnded"
-                            @loadedmetadata="handleLoadedMetadata" @timeupdate="handleAudioTimeUpdate"
-                            @play="handleAudioPlay" @pause="handleAudioPause"></audio>
+                        <audio v-if="messages.audio_url" ref="audioRef" :src="messages.audio_url" preload="metadata"
+                            @ended="handleAudioEnded" @loadedmetadata="handleLoadedMetadata"
+                            @timeupdate="handleAudioTimeUpdate" @play="handleAudioPlay"
+                            @pause="handleAudioPause"></audio>
+                        <audio v-else ref="audioRef" :src="messages.content" preload="metadata"
+                            @ended="handleAudioEnded" @loadedmetadata="handleLoadedMetadata"
+                            @timeupdate="handleAudioTimeUpdate" @play="handleAudioPlay"
+                            @pause="handleAudioPause"></audio>
                     </button>
                 </template>
                 <template v-else>
@@ -58,6 +63,16 @@ const props = defineProps({
 
 const audioRef = ref(null);
 const isPlaying = ref(false);
+const instanceId = crypto.randomUUID();
+
+const pauseByOther = (e) => {
+    if (e.detail === instanceId) return;
+    if (audioRef.value && !audioRef.value.paused) {
+        audioRef.value.pause();
+    }
+};
+
+
 const loadedDuration = ref(0);
 const remainingDuration = ref(0);
 
@@ -93,6 +108,7 @@ const handleAudioTimeUpdate = () => {
 };
 
 const handleAudioPlay = () => {
+    document.dispatchEvent(new CustomEvent('audio-play-exclusive', { detail: instanceId }));
     isPlaying.value = true;
     syncRemainingDuration();
 };
@@ -173,9 +189,11 @@ const handleCreateTime = (time) => {
 onMounted(() => {
     console.log('messages =====> ', props.messages);
     remainingDuration.value = props.messages?.audio_duration || 0;
+    document.addEventListener('audio-play-exclusive', pauseByOther);
 });
 
 onUnmounted(() => {
+    document.removeEventListener('audio-play-exclusive', pauseByOther);
     if (audioRef.value) {
         audioRef.value.pause();
     }
