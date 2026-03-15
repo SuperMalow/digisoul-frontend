@@ -139,6 +139,7 @@ const updateAudioMessage = (pcm16ArrayBuffer, sampleCount) => {
         audio_url: audioUrl,
         audio_duration: duration,
     });
+    return mp3Blob;
 }
 
 const sendToBackend = async (pcm16ArrayBuffer, sampleCount) => {
@@ -146,12 +147,12 @@ const sendToBackend = async (pcm16ArrayBuffer, sampleCount) => {
     const formData = new FormData();
     formData.append("audio", blob, 'voice.pcm');
     // 先添加一条语音消息
-    updateAudioMessage(pcm16ArrayBuffer, sampleCount);
+    const mp3Blob = updateAudioMessage(pcm16ArrayBuffer, sampleCount);
 
     try {
         const res = await sendAudioMessage(formData);
         if (res?.status === 200) {
-            emit('sendMessage', null, res?.data?.text);
+            emit('sendMessage', null, res?.data?.text, mp3Blob);
             console.log("发送语音消息成功 ==> ", res);
         }
     } catch (e) {

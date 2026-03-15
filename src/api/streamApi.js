@@ -21,15 +21,19 @@ export default async function streamApi(url, options = {}) {
     const userStore = useUserStore();
 
     const startFetch = async () => {
+        const isFormData = options.body instanceof FormData;
+        const headers = {
+            'Authorization': `Bearer ${userStore.accessToken}`,
+            ...options.headers,
+        };
+        if (!isFormData) {
+            headers['Content-Type'] = 'application/json';
+        }
+
         return await fetchEventSource(BASE_URL + url, {
             method: options.method || 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${userStore.accessToken}`,
-                ...options.headers,
-            },
-            // 需要传递的参数
-            body: JSON.stringify(options.body || {}),
+            headers,
+            body: isFormData ? options.body : JSON.stringify(options.body || {}),
 
             openWhenHidden: true,  // 允许后台运行，防止浏览器因隐藏页面而强制关闭它
             async onopen(response) {

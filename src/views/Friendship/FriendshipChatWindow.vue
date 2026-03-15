@@ -225,7 +225,8 @@ const handleEnterKey = (event) => {
 };
 
 // 发送消息
-const send = async (event, audio_messages = null) => {
+const send = async (event, audio_messages = null, audio_files = null) => {
+    console.log("存在 audio 文件 ===> ", audio_files)
     let text;
     if (audio_messages) {
         // 发送的语音消息
@@ -249,7 +250,16 @@ const send = async (event, audio_messages = null) => {
 
     // TODO: 调用发送消息 API，并接收对方回复
     try {
-        sendMessageStream({ friend_uuid: props.friend.uuid, message: text }, (data, isDone) => {
+        let bodyData;
+        if (audio_files) {
+            bodyData = new FormData();
+            bodyData.append('friend_uuid', props.friend.uuid);
+            bodyData.append('message', text);
+            bodyData.append('audio_files', audio_files, 'audio.mp3');
+        } else {
+            bodyData = { friend_uuid: props.friend.uuid, message: text };
+        }
+        sendMessageStream(bodyData, (data, isDone) => {
             if (currentProcesId !== procesId) {
                 handlerMarkInterrupted();
                 return;
