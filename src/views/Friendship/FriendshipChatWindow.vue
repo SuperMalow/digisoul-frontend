@@ -173,19 +173,17 @@ const props = defineProps({
 
 // 修改用户发送消息为语音消息
 const changeUserMessageToAudio = (audioPayload) => {
-    if (!audioPayload?.audioUrl) return;
+    if (!audioPayload?.audio_url) return;
 
     const pendingUserMessage = messages.value.at(-2);
     if (pendingUserMessage?.role === 'user' && pendingUserMessage.is_audio) {
         // 替换旧 URL，避免泄漏
-        if (pendingUserMessage.audio_url && pendingUserMessage.audio_url !== audioPayload.audioUrl) {
+        if (pendingUserMessage.audio_url && pendingUserMessage.audio_url !== audioPayload.audio_url) {
             URL.revokeObjectURL(pendingUserMessage.audio_url);
         }
         pendingUserMessage.content = audioPayload.audio_url;
         pendingUserMessage.audio_url = audioPayload.audio_url;
         pendingUserMessage.audio_duration = audioPayload.audio_duration;
-        // pendingUserMessage.audio_pcm_blob = audioPayload.pcmBlob;
-        // pendingUserMessage.audio_wav_blob = audioPayload.wavBlob;
         scrollToBottom();
         return;
     }
@@ -193,13 +191,11 @@ const changeUserMessageToAudio = (audioPayload) => {
     // 如果当前没有“占位语音消息”，则新增一条用户语音消息
     handlerPushbackMessage({
         role: 'user',
-        content: audioPayload.audioUrl,
+        content: audioPayload.audio_url,
         id: crypto.randomUUID(),
         is_audio: true,
-        audio_url: audioPayload.audioUrl,
-        audio_duration: audioPayload.duration,
-        audio_pcm_blob: audioPayload.pcmBlob,
-        audio_wav_blob: audioPayload.wavBlob,
+        audio_url: audioPayload.audio_url,
+        audio_duration: audioPayload.audio_duration,
     });
     scrollToBottom();
 }
@@ -245,7 +241,7 @@ const send = async (event, audio_messages = null) => {
 
     handlerPushbackMessage({ role: 'interrupted', is_interrupted: false, id: crypto.randomUUID() });
     if (audio_messages) {
-        handlerPushbackMessage({ role: 'user', content: null, id: crypto.randomUUID(), is_audio: true });
+        // handlerPushbackMessage({ role: 'user', content: null, id: crypto.randomUUID(), is_audio: true });
     } else {
         handlerPushbackMessage({ role: 'user', content: text, id: crypto.randomUUID(), is_audio: false });
     }

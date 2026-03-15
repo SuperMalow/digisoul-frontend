@@ -50,7 +50,7 @@ const sendMessageStream = (data, onmessage, onerror) => {
  * @param {Blob} audio - 语音文件
  */
 const sendAudioMessage = (audio) => {
-    return http.post(`friends/message/audio/`, { audio });
+    return http.post(`friends/messages/asr/asr/`, audio);
 };
 
 /**

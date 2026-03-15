@@ -56,17 +56,17 @@ const startRecording = async () => {
                 startOnLoad: false,
                 onSpeechStart: () => {
                     // 开始说话的时候，打断AI
-                    emit('interrupted');
+                    // emit('interrupted');
                     console.log("开始说话...");
                     isSpeaking.value = true;
                 },
                 onSpeechEnd: async (audio) => {
                     console.log("结束说话...");
                     isSpeaking.value = false;
+                    const sampleCount = audio.length;
                     const pcm16 = float32ToInt16(audio);
-                    // 停止录音
                     await stopRecording();
-                    sendToBackend(pcm16);
+                    sendToBackend(pcm16, sampleCount);
                 },
                 positiveSpeechThreshold: 0.4,
                 negativeSpeechThreshold: 0.4,
@@ -107,14 +107,15 @@ const float32ToInt16 = (float32Array) => {
     return buffer.buffer;
 };
 
-// 将float32Array转换成mp3
-const audioToMp3Blob = (float32Array, sampleRate = 16000) => {
+// 将pcm16 ArrayBuffer转换成mp3 Blob
+const pcm16ToMp3Blob = (pcm16ArrayBuffer, sampleRate = 16000) => {
+    const samples = new Int16Array(pcm16ArrayBuffer);
     const mp3Encoder = new Mp3Encoder(1, sampleRate, 128);
     const mp3Data = [];
     const blockSize = 1152;
 
-    for (let i = 0; i < float32Array.length; i += blockSize) {
-        const chunk = float32Array.subarray(i, i + blockSize);
+    for (let i = 0; i < samples.length; i += blockSize) {
+        const chunk = samples.subarray(i, i + blockSize);
         const mp3buf = mp3Encoder.encodeBuffer(chunk);
         if (mp3buf.length > 0) {
             mp3Data.push(mp3buf);
@@ -129,11 +130,10 @@ const audioToMp3Blob = (float32Array, sampleRate = 16000) => {
     return new Blob(mp3Data, { type: 'audio/mp3' });
 };
 
-// 将float32Array文件进行展示
-const updateAudioMessage = (float32Array) => {
-    const mp3Blob = audioToMp3Blob(float32Array, 16000);
+const updateAudioMessage = (pcm16ArrayBuffer, sampleCount) => {
+    const mp3Blob = pcm16ToMp3Blob(pcm16ArrayBuffer, 16000);
     const audioUrl = URL.createObjectURL(mp3Blob);
-    const duration = float32Array.length / 16000;
+    const duration = sampleCount / 16000;
     emit('updateInputText', {
         audio_message: mp3Blob,
         audio_url: audioUrl,
@@ -141,18 +141,18 @@ const updateAudioMessage = (float32Array) => {
     });
 }
 
-const sendToBackend = async (arrayBuffer) => {
-    updateAudioMessage(arrayBuffer);
-    // 将音频发送到后端
-    const blob = new Blob([arrayBuffer], { type: 'audio/pcm' });
+const sendToBackend = async (pcm16ArrayBuffer, sampleCount) => {
+    const blob = new Blob([pcm16ArrayBuffer], { type: 'audio/pcm' });
     const formData = new FormData();
     formData.append("audio", blob, 'voice.pcm');
+    // 先添加一条语音消息
+    updateAudioMessage(pcm16ArrayBuffer, sampleCount);
 
     try {
         const res = await sendAudioMessage(formData);
         if (res?.status === 200) {
-            emit('sendMessage', null, res.text);
-            // emit('updateInputText', blob);
+            emit('sendMessage', null, res?.data?.text);
+            console.log("发送语音消息成功 ==> ", res);
         }
     } catch (e) {
         console.log('发送语音文件识别错误 ==> ', e);
