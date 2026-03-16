@@ -55,9 +55,6 @@
                                     {{ voice.voice_name }}（{{ voiceLanguageLabel(voice.voice_language) }}）
                                 </option>
                             </select>
-                            <p v-if="settings.voice_uuid" class="text-xs text-base-content/40 mt-1 pl-1">
-                                当前音色：{{ currentVoiceName }}
-                            </p>
                         </fieldset>
 
                         <!-- 性别 -->
@@ -89,10 +86,10 @@
                             </div>
                         </fieldset>
 
-                        <!-- 简介 -->
+                        <!-- 角色介绍 -->
                         <fieldset v-if="settingsLoaded" class="fieldset">
                             <legend class="fieldset-legend">
-                                简介
+                                角色介绍
                                 <span class="text-xs text-base-content/40 font-normal ml-1">
                                     {{ (settings.short_profile || '').length }}/100
                                 </span>
@@ -101,11 +98,15 @@
                                 placeholder="一句话介绍角色 ~" maxlength="100" />
                         </fieldset>
 
-                        <!-- 介绍 -->
+                        <!-- 角色设计 -->
                         <fieldset class="fieldset">
-                            <legend class="fieldset-legend">介绍</legend>
+                            <legend class="fieldset-legend">角色设计
+                                <span class="text-xs text-base-content/40 font-normal ml-1">
+                                    {{ (character.profile || '').length }}/5000
+                                </span>
+                            </legend>
                             <textarea class="textarea w-full" v-model="character.profile" placeholder="请介绍一下角色吧 ~"
-                                rows="5"></textarea>
+                                rows="5" maxlength="5000"></textarea>
                         </fieldset>
 
                         <!-- 背景图片 -->

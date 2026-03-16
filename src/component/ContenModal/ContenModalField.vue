@@ -13,6 +13,11 @@
                     <span @click="handlerGoToChat" class="text-xl font-bold text-center"
                         :class="{ 'cursor-pointer': isFriend }">{{ content?.name
                         }}</span>
+                    <!-- 女性还是男性的图标 -->
+                    <div>
+                        <MaleIcon v-if="content?.gender === 'male'" class="w-5 h-5" title="男" />
+                        <FemaleIcon v-else class="w-5 h-5" title="女" />
+                    </div>
                     <!-- 好友状态 -->
                     <div class="flex items-center gap-2 ml-auto">
                         <button v-if="!isFriend"
@@ -23,7 +28,7 @@
                             @click="handlerDeleteFriends">删除好友</button>
                     </div>
                 </div>
-                <p class="mt-4 break-all">{{ content?.profile }}</p>
+                <p class="mt-4 break-all indent-8">{{ content?.character_settings?.short_profile }}</p>
                 <div class="flex items-center gap-2 mt-4">
                     <span class="text-sm text-base-content/50">作者：
                         <router-link :to="`/user/space/${content?.author?.uuid}`" class="cursor-pointer underline">
@@ -93,6 +98,8 @@ import { ElMessage } from 'element-plus';
 import { deleteCharacter as deleteCharacterApi } from '@/api/character';
 import { createFriends as addFriendsApi, deleteFriends as deleteFriendsApi } from '@/api/friends';
 import { useRouter } from 'vue-router';
+import MaleIcon from '../Icon/MaleIcon.vue';
+import FemaleIcon from '../Icon/FemaleIcon.vue';
 
 const userStore = useUserStore();
 
@@ -104,6 +111,11 @@ const handlerGoToChat = () => {
     router.push(`/friendship/?friend_uuid=${props.content?.is_friend?.uuid}`);
 }
 
+// 将添加好友的字段更新到props.content中
+const updateContent = (content) => {
+    props.content.is_friend = content
+}
+
 // 添加好友
 const handlerAddFriends = async () => {
     try {
@@ -112,6 +124,7 @@ const handlerAddFriends = async () => {
         if (res?.status === 200) {
             ElMessage.success('添加好友成功');
             isFriend.value = true;
+            updateContent(res?.data?.friend);
         } else {
             console.log(res)
             ElMessage.error(res?.data?.errors || '添加好友失败');
@@ -130,6 +143,7 @@ const handlerDeleteFriends = async () => {
         if (res?.status === 200) {
             ElMessage.success('删除好友成功');
             isFriend.value = false;
+            updateContent(null);
         }
         else {
             console.log(res)

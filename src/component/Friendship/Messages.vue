@@ -210,7 +210,7 @@ const handleCreateTime = (time) => {
 }
 
 onMounted(() => {
-    console.log('messages =====> ', props.messages);
+    // console.log('messages =====> ', props.messages);
     remainingDuration.value = props.messages?.audio_duration || 0;
     document.addEventListener('audio-play-exclusive', pauseByOther);
 });

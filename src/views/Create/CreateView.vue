@@ -46,7 +46,13 @@
                             </fieldset>
 
                             <fieldset class="fieldset">
-                                <legend class="fieldset-legend">默认音色</legend>
+                                <legend class="fieldset-legend ">
+                                    <span>默认音色</span>
+                                    <!-- 试听当前音色语音 -->
+                                    <VolumeIcon class="cursor-pointer text-primary opacity-85"
+                                        @click="testCurrentVoice" />
+                                </legend>
+
                                 <select class="select w-full" v-model="form.settings_voice_uuid"
                                     :disabled="isVoiceLoading">
                                     <option disabled value="">{{ isVoiceLoading ? "正在加载音色..." : "请选择音色" }}</option>
@@ -59,7 +65,7 @@
                             <fieldset class="fieldset">
                                 <legend class="fieldset-legend">角色介绍</legend>
                                 <input type="text" class="input w-full" v-model="form.settings_short_profile"
-                                    placeholder="一句话介绍你的角色吧～" />
+                                    placeholder="请使用一句话介绍你的角色吧～" />
                             </fieldset>
                         </div>
 
@@ -145,6 +151,8 @@ import { ref, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { createCharacter, getCharacterVoiceList } from "@/api/character";
 import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
+import VolumeIcon from "@/component/Icon/VolumeIcon.vue";
+
 const router = useRouter();
 
 import CameraIcon from "@/component/Icon/CameraIcon.vue";
@@ -152,6 +160,9 @@ import CameraIcon from "@/component/Icon/CameraIcon.vue";
 import Croppie from "croppie";
 // import "croppie/dist/croppie.css";
 import "croppie/croppie.css";
+
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/";
+const audioUrl = (path) => (path ? BASE_URL + path.replace(/^\//, "") : "");
 
 const fileInputRef = ref(null);
 const backgroundPhotoFileInputRef = ref(null);
@@ -173,6 +184,7 @@ const croppieRef = ref(null);
 const backgroundPhotoCroppieRef = ref(null);
 let croppie = null;
 let backgroundPhotoCroppie = null;
+let currentAudio = null;
 
 const form = ref({
     name: "",
@@ -205,6 +217,45 @@ const loadVoiceOptions = async () => {
         ElMessage.error(msg);
     } finally {
         isVoiceLoading.value = false;
+    }
+};
+
+// 试听当前音色语音
+const testCurrentVoice = () => {
+    if (isVoiceLoading.value) {
+        ElMessage.warning("音色列表正在加载中，请稍后");
+        return;
+    }
+    if (!form.value.settings_voice_uuid) {
+        ElMessage.warning("请先选择一个音色");
+        return;
+    }
+    const voice = voiceOptions.value.find(
+        (item) => item.uuid === form.value.settings_voice_uuid,
+    );
+    if (!voice) {
+        ElMessage.error("未找到对应音色，请重新选择");
+        return;
+    }
+    if (!voice.preview_voice) {
+        ElMessage.warning("当前音色没有配置试听语音");
+        return;
+    }
+
+    const url = audioUrl(voice.preview_voice);
+
+    try {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+        currentAudio = new Audio(url);
+        currentAudio.play().catch(() => {
+            ElMessage.error("播放试听语音失败，请稍后重试");
+        });
+    } catch (e) {
+        console.error(e);
+        ElMessage.error("播放试听语音失败，请稍后重试");
     }
 };
 

@@ -6,10 +6,12 @@
         <div>
             <div>{{ friend?.character?.name }}</div>
             <div class="text-xs uppercase font-semibold opacity-60">{{ friend?.character?.uuid }}</div>
+
         </div>
-        <!-- <p class="list-col-wrap text-xs line-clamp-2 break-all">
-            {{ friend?.character?.profile }}
-        </p> -->
+        <p class="list-col-wrap text-xs line-clamp-3 break-all">
+            {{ friend?.character?.character_settings?.short_profile }}
+        </p>
+
         <!-- 操作 -->
         <div @click.stop class="dropdown dropdown-end ml-auto">
             <div class="btn btn-square btn-ghost size-5" title="更多操作">
@@ -35,6 +37,7 @@
 
 <script setup>
 import EllipsisIcon from '@/component/Icon/EllipsisIcon.vue'
+import { onMounted } from 'vue';
 
 const emit = defineEmits(['selectFriend', 'deleteFriend']);
 
@@ -59,4 +62,8 @@ const handleDeleteFriend = () => {
     document.activeElement.blur();
     emit('deleteFriend', props.friend);
 }
+
+onMounted(() => {
+    // console.log('FriendshipCharacter mounted ===> ', props.friend);
+})
 </script>
