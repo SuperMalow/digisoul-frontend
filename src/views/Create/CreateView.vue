@@ -1,82 +1,107 @@
 <template>
     <div class="min-h-[calc(100vh-4rem)] bg-base-200">
-        <div class="max-w-lg mx-auto px-4 py-8">
-            <div class="card bg-base-100 shadow-xl">
-                <div class="card-body p-4 sm:p-6">
-                    <!-- 标题 -->
-                    <h1 class="text-2xl font-semibold text-center mb-4 text-base-content/90">
-                        创作角色
-                    </h1>
+        <div class="max-w-3xl mx-auto px-4 py-8 lg:py-10">
+            <div class="card bg-base-100/95 border border-base-content/10 shadow-[0_18px_50px_rgba(10,12,18,0.22)]">
+                <div class="card-body p-5 sm:p-7">
+                    <form @submit.prevent="handleSubmit" class="space-y-5">
+                        <h1 class="text-2xl font-semibold text-center text-base-content/90 tracking-wide">创作角色</h1>
 
-                    <!-- 头像区域 -->
-                    <div class="flex flex-col items-center gap-4 mb-3">
-                        <div class="relative group cursor-pointer" @click="triggerFileInput">
-                            <div
-                                class="w-28 h-28 rounded-full overflow-hidden ring-4 ring-base-200 ring-offset-2 ring-offset-base-100 shadow-lg transition-all duration-300 group-hover:ring-primary/40 ">
-                                <img v-if="avatarPreview" :src="avatarPreview" alt="角色头像"
-                                    class="w-full h-full object-cover rounded-full" />
-                                <div v-else
-                                    class="w-full h-full bg-base-200 rounded-full flex justify-center items-center">
-                                    <span class="text-sm text-base">请上传头像</span>
-                                </div>
-                            </div>
-                            <div
-                                class="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-full">
-                                <span v-if="avatarPreview" class="text-white text-sm font-medium">更换</span>
-                                <span v-else class="text-white text-sm font-medium">
-                                    <CameraIcon />
-                                </span>
-                            </div>
-                        </div>
-                        <input ref="fileInputRef" type="file" accept="image/jpeg,image/png,image/webp,image/jpg"
-                            class="hidden" @change="handlePhotoSelect" />
-                    </div>
-
-                    <!-- 表单 -->
-                    <form @submit.prevent="handleSubmit" class="space-y-4">
-                        <!-- 名字 -->
-                        <fieldset class="fieldset ">
-                            <legend class="fieldset-legend">名字</legend>
-                            <input type="text" class="input w-full" v-model="form.name" placeholder="为角色起一个名字吧 ~" />
-                        </fieldset>
-
-                        <!-- 介绍 -->
-                        <fieldset class="fieldset ">
-                            <legend class="fieldset-legend">介绍</legend>
-                            <textarea class="textarea w-full" v-model="form.profile"
-                                placeholder="请介绍一下角色吧 ~"></textarea>
-                        </fieldset>
-
-                        <!-- 背景图片 -->
-                        <fieldset class="fieldset ">
-                            <legend class="fieldset-legend">背景图片</legend>
-                            <div class="relative group cursor-pointer" @click="triggerBackgroundPhotoFileInput">
+                        <!-- 顶部圆形头像 -->
+                        <div class="flex justify-center">
+                            <div class="relative group cursor-pointer" @click="triggerFileInput">
                                 <div
-                                    class="w-full h-28 rounded-lg overflow-hidden ring-4 ring-base-200 ring-offset-2 ring-offset-base-100 shadow-lg transition-all duration-300 group-hover:ring-primary/40 ">
-                                    <img v-if="backgroundPhotoPreview" :src="backgroundPhotoPreview" alt="背景图片"
-                                        class="w-full h-full object-cover rounded-lg" />
+                                    class="w-28 h-28 rounded-full overflow-hidden ring-4 ring-base-200 ring-offset-2 ring-offset-base-100 shadow-lg transition-all duration-300 group-hover:ring-primary/40">
+                                    <img v-if="avatarPreview" :src="avatarPreview" alt="角色头像"
+                                        class="w-full h-full object-cover rounded-full" />
                                     <div v-else
-                                        class="w-full h-full bg-base-200 rounded-lg flex justify-center items-center gap-2">
-                                        <span class="text-sm text-base">请上传背景图片</span>
+                                        class="w-full h-full bg-base-200 rounded-full flex justify-center items-center">
+                                        <span class="text-sm text-base">请上传头像</span>
                                     </div>
                                 </div>
                                 <div
-                                    class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 ">
-                                    <span v-if="backgroundPhotoPreview" class="text-white text-sm font-medium">更换</span>
+                                    class="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    <span v-if="avatarPreview" class="text-white text-sm font-medium">更换</span>
                                     <span v-else class="text-white text-sm font-medium">
                                         <CameraIcon />
                                     </span>
                                 </div>
                             </div>
-                            <input ref="backgroundPhotoFileInputRef" type="file"
-                                accept="image/jpeg,image/png,image/webp,image/jpg" class="hidden"
-                                @change="handleBackgroundPhotoSelect" />
-                        </fieldset>
+                            <input ref="fileInputRef" type="file" accept="image/jpeg,image/png,image/webp,image/jpg"
+                                class="hidden" @change="handlePhotoSelect" />
+                        </div>
 
-                        <!-- 提交 -->
-                        <div class="pt-4">
-                            <button type="submit" class="btn btn-primary w-full" :class="{ 'loading': isSubmitting }"
-                                :disabled="isSubmitting">
+                        <!-- 两行双列小区域 -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <fieldset class="fieldset">
+                                <legend class="fieldset-legend">名字</legend>
+                                <input type="text" class="input w-full" v-model="form.name" placeholder="为角色起一个名字吧 ~" />
+                            </fieldset>
+
+                            <fieldset class="fieldset">
+                                <legend class="fieldset-legend">性别</legend>
+                                <select class="select w-full" v-model="form.gender">
+                                    <option value="male">男</option>
+                                    <option value="female">女</option>
+                                </select>
+                            </fieldset>
+
+                            <fieldset class="fieldset">
+                                <legend class="fieldset-legend">默认音色</legend>
+                                <select class="select w-full" v-model="form.settings_voice_uuid"
+                                    :disabled="isVoiceLoading">
+                                    <option disabled value="">{{ isVoiceLoading ? "正在加载音色..." : "请选择音色" }}</option>
+                                    <option v-for="voice in voiceOptions" :key="voice.uuid" :value="voice.uuid">
+                                        {{ voice.voice_name || "未命名音色" }}（{{ voice.voice_language }}）
+                                    </option>
+                                </select>
+                            </fieldset>
+
+                            <fieldset class="fieldset">
+                                <legend class="fieldset-legend">角色介绍</legend>
+                                <input type="text" class="input w-full" v-model="form.settings_short_profile"
+                                    placeholder="一句话介绍你的角色吧～" />
+                            </fieldset>
+                        </div>
+
+                        <!-- 中部大区域 -->
+                        <div class="rounded-2xl border border-base-content/10 bg-base-100/60 p-2 sm:p-5 space-y-4">
+                            <fieldset class="fieldset">
+                                <legend class="fieldset-legend">角色设计</legend>
+                                <textarea class="textarea w-full min-h-28" v-model="form.profile"
+                                    placeholder="请设计你的角色吧 ~" rows="6"></textarea>
+                            </fieldset>
+
+                            <fieldset class="fieldset">
+                                <legend class="fieldset-legend">背景图片</legend>
+                                <div class="relative group cursor-pointer" @click="triggerBackgroundPhotoFileInput">
+                                    <div
+                                        class="w-full h-32 rounded-xl overflow-hidden ring-2 ring-base-200 shadow-lg transition-all duration-300 group-hover:ring-primary/40">
+                                        <img v-if="backgroundPhotoPreview" :src="backgroundPhotoPreview" alt="背景图片"
+                                            class="w-full h-full object-cover rounded-xl" />
+                                        <div v-else
+                                            class="w-full h-full bg-base-200 rounded-xl flex justify-center items-center gap-2">
+                                            <span class="text-sm text-base">请上传背景图片</span>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        <span v-if="backgroundPhotoPreview"
+                                            class="text-white text-sm font-medium">更换</span>
+                                        <span v-else class="text-white text-sm font-medium">
+                                            <CameraIcon />
+                                        </span>
+                                    </div>
+                                </div>
+                                <input ref="backgroundPhotoFileInputRef" type="file"
+                                    accept="image/jpeg,image/png,image/webp,image/jpg" class="hidden"
+                                    @change="handleBackgroundPhotoSelect" />
+                            </fieldset>
+                        </div>
+
+                        <!-- 底部居中按钮 -->
+                        <div class="pt-2 flex justify-center">
+                            <button type="submit" class="btn btn-primary min-w-[220px] w-full max-w-[320px]"
+                                :class="{ 'loading': isSubmitting }" :disabled="isSubmitting">
                                 {{ isSubmitting ? '' : '创建角色' }}
                             </button>
                         </div>
@@ -116,8 +141,8 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, onBeforeUnmount } from "vue";
-import { createCharacter, updateCharacter } from "@/api/character";
+import { ref, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { createCharacter, getCharacterVoiceList } from "@/api/character";
 import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
 const router = useRouter();
@@ -138,6 +163,8 @@ const photoFile = ref(null);
 const backgroundPhotoFile = ref(null);
 
 const isSubmitting = ref(false);
+const isVoiceLoading = ref(false);
+const voiceOptions = ref([]);
 
 const avatarModalRef = ref(null);
 const backgroundPhotoModalRef = ref(null);
@@ -149,10 +176,37 @@ let backgroundPhotoCroppie = null;
 
 const form = ref({
     name: "",
+    gender: "male",
     profile: "",
     photo: null,
     background_photo: null,
+    settings_is_public: true,
+    settings_short_profile: "",
+    settings_voice_uuid: "",
 });
+
+const loadVoiceOptions = async () => {
+    isVoiceLoading.value = true;
+    try {
+        const res = await getCharacterVoiceList();
+        if (res?.data?.result === "success") {
+            voiceOptions.value = res.data.character_voices || [];
+            if (!form.value.settings_voice_uuid && voiceOptions.value.length > 0) {
+                form.value.settings_voice_uuid = voiceOptions.value[0].uuid;
+            }
+        } else {
+            ElMessage.error(res?.data?.errors || "获取音色列表失败");
+        }
+    } catch (err) {
+        const raw = err?.response?.data?.errors || "获取音色列表失败";
+        const msg = typeof raw === "object"
+            ? Object.values(raw).flat().join(" ") || "获取音色列表失败"
+            : raw;
+        ElMessage.error(msg);
+    } finally {
+        isVoiceLoading.value = false;
+    }
+};
 
 // 打开背景图片裁剪modal
 const openBackgroundPhotoModal = async (src) => {
@@ -290,7 +344,11 @@ const handleSubmit = async () => {
             payload.append("background_photo", backgroundPhotoFile.value, "background_photo.png");
         }
         payload.append("name", form.value.name);
+        payload.append("gender", form.value.gender);
         payload.append("profile", form.value.profile);
+        payload.append("settings_is_public", String(form.value.settings_is_public));
+        payload.append("settings_short_profile", form.value.settings_short_profile || "");
+        payload.append("settings_voice_uuid", form.value.settings_voice_uuid || "");
         const res = await createCharacter(payload);
         if (res?.data?.result === "success") {
             if (photoFile.value) {
@@ -320,6 +378,10 @@ const handleSubmit = async () => {
         isSubmitting.value = false;
     }
 };
+
+onMounted(() => {
+    loadVoiceOptions();
+});
 
 onBeforeUnmount(() => {
     croppie?.destroy();

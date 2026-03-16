@@ -46,8 +46,63 @@
                                 placeholder="为角色起一个名字吧 ~" />
                         </fieldset>
 
+                        <!-- 音色选择 -->
+                        <fieldset v-if="settingsLoaded && voiceList.length" class="fieldset">
+                            <legend class="fieldset-legend">音色</legend>
+                            <select class="select w-full" v-model="settings.voice_uuid">
+                                <option value="" disabled>请选择音色</option>
+                                <option v-for="voice in voiceList" :key="voice.uuid" :value="voice.uuid">
+                                    {{ voice.voice_name }}（{{ voiceLanguageLabel(voice.voice_language) }}）
+                                </option>
+                            </select>
+                            <p v-if="settings.voice_uuid" class="text-xs text-base-content/40 mt-1 pl-1">
+                                当前音色：{{ currentVoiceName }}
+                            </p>
+                        </fieldset>
+
+                        <!-- 性别 -->
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">性别</legend>
+                            <div class="flex gap-6">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="gender" value="male" v-model="character.gender"
+                                        class="radio radio-primary radio-sm" />
+                                    <span class="text-sm">男</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="gender" value="female" v-model="character.gender"
+                                        class="radio radio-primary radio-sm" />
+                                    <span class="text-sm">女</span>
+                                </label>
+                            </div>
+                        </fieldset>
+
+                        <!-- 公开状态 -->
+                        <fieldset v-if="settingsLoaded" class="fieldset">
+                            <legend class="fieldset-legend">公开状态</legend>
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" class="toggle toggle-primary toggle-sm"
+                                    v-model="settings.is_public" />
+                                <span class="text-sm text-base-content/70">
+                                    {{ settings.is_public ? '公开（所有人可见）' : '私密（仅自己可见）' }}
+                                </span>
+                            </div>
+                        </fieldset>
+
+                        <!-- 简介 -->
+                        <fieldset v-if="settingsLoaded" class="fieldset">
+                            <legend class="fieldset-legend">
+                                简介
+                                <span class="text-xs text-base-content/40 font-normal ml-1">
+                                    {{ (settings.short_profile || '').length }}/100
+                                </span>
+                            </legend>
+                            <input type="text" class="input w-full" v-model="settings.short_profile"
+                                placeholder="一句话介绍角色 ~" maxlength="100" />
+                        </fieldset>
+
                         <!-- 介绍 -->
-                        <fieldset class="fieldset ">
+                        <fieldset class="fieldset">
                             <legend class="fieldset-legend">介绍</legend>
                             <textarea class="textarea w-full" v-model="character.profile" placeholder="请介绍一下角色吧 ~"
                                 rows="5"></textarea>
@@ -122,12 +177,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, nextTick, onBeforeUnmount } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 import CameraIcon from "@/component/Icon/CameraIcon.vue";
 
-import { updateCharacter, getCharacter } from "@/api/character";
+import { updateCharacter, getCharacter, getCharacterSettings, updateCharacterSettings, getCharacterVoiceList } from "@/api/character";
 
 import { useRouter } from "vue-router";
 const router = useRouter();
@@ -165,9 +220,32 @@ let backgroundPhotoCroppie = null;
 // 角色信息
 const character = ref({
     name: "",
+    gender: "male",
     profile: "",
     photo: "",
     background_photo: "",
+});
+
+// 角色设置信息
+const settings = ref({
+    uuid: "",
+    is_public: true,
+    short_profile: "",
+    voice_uuid: "",
+});
+const settingsLoaded = ref(false);
+
+// 音色列表
+const voiceList = ref([]);
+
+// 音色语言映射
+const voiceLanguageMap = { zh: "中文", en: "英文", ja: "日文", ko: "韩文" };
+const voiceLanguageLabel = (lang) => voiceLanguageMap[lang] || lang;
+
+// 当前选中音色名称
+const currentVoiceName = computed(() => {
+    const found = voiceList.value.find(v => v.uuid === settings.value.voice_uuid);
+    return found ? `${found.voice_name}（${voiceLanguageLabel(found.voice_language)}）` : "";
 });
 
 // 更新信息
@@ -175,6 +253,7 @@ const handleSubmit = async () => {
     if (isSubmitting.value) return;
     isSubmitting.value = true;
     try {
+        // 更新角色基本信息
         let payload = new FormData();
         if (avatarPhotoFile.value) {
             payload.append("photo", avatarPhotoFile.value, "avatar.png");
@@ -184,26 +263,43 @@ const handleSubmit = async () => {
         }
         payload.append("uuid", uuid);
         payload.append("name", character.value.name);
+        payload.append("gender", character.value.gender);
         payload.append("profile", character.value.profile);
         const res = await updateCharacter(payload);
-        if (res?.data?.result === "success") {
-            if (avatarPhotoFile.value) {
-                if (character.value.photo) URL.revokeObjectURL(character.value.photo);
-                avatarPhotoFile.value = null;
-                character.value.photo = "";
-            }
-            if (backgroundPhotoFile.value) {
-                if (character.value.background_photo) URL.revokeObjectURL(character.value.background_photo);
-                backgroundPhotoFile.value = null;
-                character.value.background_photo = "";
-            }
-            ElMessage.success("更新角色信息成功");
-            // 到时候创建完成之后跳转到角色详情页，现在先跳转到首页
-            router.push(`/`);
-        } else {
-            console.log(res);
+        if (res?.data?.result !== "success") {
             ElMessage.error(res?.data?.errors || "更新角色信息失败");
+            return;
         }
+        if (avatarPhotoFile.value) {
+            if (character.value.photo) URL.revokeObjectURL(character.value.photo);
+            avatarPhotoFile.value = null;
+            character.value.photo = "";
+        }
+        if (backgroundPhotoFile.value) {
+            if (character.value.background_photo) URL.revokeObjectURL(character.value.background_photo);
+            backgroundPhotoFile.value = null;
+            character.value.background_photo = "";
+        }
+
+        // 更新角色设置
+        if (settingsLoaded.value && settings.value.uuid) {
+            const settingsPayload = {
+                uuid: settings.value.uuid,
+                is_public: settings.value.is_public,
+                short_profile: settings.value.short_profile,
+            };
+            if (settings.value.voice_uuid) {
+                settingsPayload.voice_uuid = settings.value.voice_uuid;
+            }
+            const settingsRes = await updateCharacterSettings(settingsPayload);
+            if (settingsRes?.data?.result !== "success") {
+                ElMessage.error(settingsRes?.data?.errors || "更新角色设置失败");
+                return;
+            }
+        }
+
+        ElMessage.success("更新角色信息成功");
+        router.push(`/`);
     } catch (err) {
         const raw = err?.response?.data?.errors || "更新角色信息失败";
         const msg = typeof raw === "object"
@@ -344,7 +440,6 @@ const getCharacterInfo = async () => {
         const res = await getCharacter(uuid);
         if (res?.data?.result === "success") {
             character.value = res.data.character;
-            console.log(character.value);
             for (const key in character.value) {
                 if (key === "photo" || key === "background_photo") {
                     if (character.value[key]) {
@@ -365,10 +460,41 @@ const getCharacterInfo = async () => {
     }
 };
 
+const getCharacterSettingsInfo = async () => {
+    try {
+        const res = await getCharacterSettings(uuid);
+        if (res?.data?.result === "success") {
+            const list = res.data.character_settings;
+            if (list && list.length > 0) {
+                const s = list[0];
+                settings.value.uuid = s.uuid;
+                settings.value.is_public = s.is_public;
+                settings.value.short_profile = s.short_profile || "";
+                settings.value.voice_uuid = s.voice?.uuid || "";
+                settingsLoaded.value = true;
+            }
+        }
+    } catch (err) {
+        console.error("获取角色设置失败", err);
+    }
+};
+
+const getVoiceList = async () => {
+    try {
+        const res = await getCharacterVoiceList();
+        if (res?.data?.result === "success") {
+            voiceList.value = res.data.character_voices || [];
+        }
+    } catch (err) {
+        console.error("获取音色列表失败", err);
+    }
+};
+
 onMounted(() => {
-    console.log('uuid', uuid);
     if (uuid) {
         getCharacterInfo();
+        getCharacterSettingsInfo();
+        getVoiceList();
     } else {
         ElMessage.error("角色不存在或无权限访问");
     }

@@ -37,6 +37,29 @@ const getCharacter = (uuid) => {
 };
 
 /**
+ * 获取角色扩展设置
+ * @param {String} character_uuid - 角色 uuid
+ */
+const getCharacterSettings = (character_uuid) => {
+    return http.get(`character/settings/get/?character_uuid=${character_uuid}`);
+};
+
+/**
+ * 更新角色扩展设置
+ * @param {Object} data - { uuid, is_public?, short_profile?, voice_uuid? }
+ */
+const updateCharacterSettings = (data) => {
+    return http.post('character/settings/update/', data);
+};
+
+/**
+ * 获取角色音色列表
+ */
+const getCharacterVoiceList = () => {
+    return http.get(`character/voice/get/`);
+};
+
+/**
  * 获取创作角色列表
  * @param {String} uuid - 用户 uuid
  */
@@ -54,4 +77,14 @@ const getCharacterListIndex = (page = 1, page_size = 10, q = null) => {
     return http.get(`character/list/index/?page=${page}&page_size=${page_size}`);
 };
 
-export { createCharacter, updateCharacter, deleteCharacter, getCharacter, getCharacterList, getCharacterListIndex };
+export {
+    createCharacter,
+    updateCharacter,
+    deleteCharacter,
+    getCharacter,
+    getCharacterSettings,
+    updateCharacterSettings,
+    getCharacterVoiceList,
+    getCharacterList,
+    getCharacterListIndex,
+};
