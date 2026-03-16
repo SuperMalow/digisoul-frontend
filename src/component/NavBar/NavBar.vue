@@ -26,12 +26,12 @@
                 <!-- 用户操作 -->
                 <div class="navbar-end">
                     <!-- 创作按钮 -->
-                    <button class="btn btn-sm text-base font-bold">
+                    <!-- <button class="btn btn-sm text-base font-bold">
                         <CreateIcon />
                         <router-link :to="{ name: 'create' }">
                             创建
                         </router-link>
-                    </button>
+                    </button> -->
                     <!-- 切换日间/夜间模式 -->
                     <button class="btn btn-sm btn-ghost text-md btn-circle mx-2" @click="toggleDarkMode">
                         <SunModeIcon v-if="isDarkMode" />

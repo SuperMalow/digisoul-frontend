@@ -34,7 +34,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <fieldset class="fieldset">
                                 <legend class="fieldset-legend">名字</legend>
-                                <input type="text" class="input w-full" v-model="form.name" placeholder="为角色起一个名字吧 ~" />
+                                <input type="text" class="input w-full" v-model="form.name" placeholder="为角色起一个名字吧~" />
                             </fieldset>
 
                             <fieldset class="fieldset">
@@ -188,7 +188,7 @@ let currentAudio = null;
 
 const form = ref({
     name: "",
-    gender: "male",
+    gender: "female",
     profile: "",
     photo: null,
     background_photo: null,
