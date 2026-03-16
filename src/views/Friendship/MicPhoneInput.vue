@@ -24,6 +24,7 @@ import MicphoneIcon from '@/component/Icon/MicphoneIcon.vue';
 import { MicVAD } from '@ricky0123/vad-web';
 import { Mp3Encoder } from '@breezystack/lamejs';
 import { sendAudioMessage } from '@/api/friends';
+import { ElMessage } from 'element-plus';
 
 const emit = defineEmits(['updateInputText', 'interrupted', 'sendMessage', 'sendMessageSuccess']);
 // 具体的语音模型存放路径
@@ -36,8 +37,11 @@ const isRecording = ref(false);
 // 记录当前是否正在说话
 const isSpeaking = ref(false);
 
+let isInitializing = false;
+
 // 处理麦克风输入
 const handleMicphoneInput = async () => {
+    if (isInitializing) return;
     if (isRecording.value) {
         await stopRecording();
         return;
@@ -47,15 +51,25 @@ const handleMicphoneInput = async () => {
 
 let vadInstance = null;
 
+const checkMicrophoneAvailable = async () => {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices.some(d => d.kind === 'audioinput');
+};
+
 const startRecording = async () => {
+    isInitializing = true;
     try {
+        if (!await checkMicrophoneAvailable()) {
+            ElMessage.error("未检测到麦克风设备，请连接麦克风后重试");
+            return;
+        }
+
         if (!vadInstance) {
             vadInstance = await MicVAD.new({
                 baseAssetPath: baseUrl,
                 onnxWASMBasePath: onnxWasmBaseUrl,
                 startOnLoad: false,
                 onSpeechStart: () => {
-                    // 开始说话的时候，打断AI
                     emit('interrupted');
                     console.log("开始说话...");
                     isSpeaking.value = true;
@@ -71,16 +85,22 @@ const startRecording = async () => {
                 positiveSpeechThreshold: 0.3,
                 negativeSpeechThreshold: 0.3,
                 minSpeechFrames: 2,
-                redemptionFrames: 12,
+                redemptionFrames: 10,
             });
         }
-
         await vadInstance.start();
         isRecording.value = true;
         console.log("正在录音...");
     } catch (e) {
         console.error("VAD 初始化失败:", e);
+        if (vadInstance) {
+            try { vadInstance.destroy(); } catch (_) { /* ignore */ }
+            vadInstance = null;
+        }
         isRecording.value = false;
+        ElMessage.error("麦克风初始化失败，请检查麦克风权限");
+    } finally {
+        isInitializing = false;
     }
 };
 
