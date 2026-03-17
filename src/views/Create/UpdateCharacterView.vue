@@ -48,7 +48,11 @@
 
                         <!-- 音色选择 -->
                         <fieldset v-if="settingsLoaded && voiceList.length" class="fieldset">
-                            <legend class="fieldset-legend">音色</legend>
+                            <legend class="fieldset-legend">
+                                <span>音色</span>
+                                <VolumeIcon class="cursor-pointer text-primary opacity-85 ml-1"
+                                    @click="testCurrentVoice" />
+                            </legend>
                             <select class="select w-full" v-model="settings.voice_uuid">
                                 <option value="" disabled>请选择音色</option>
                                 <option v-for="voice in voiceList" :key="voice.uuid" :value="voice.uuid">
@@ -182,6 +186,7 @@ import { ref, computed, onMounted, nextTick, onBeforeUnmount } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 import CameraIcon from "@/component/Icon/CameraIcon.vue";
+import VolumeIcon from "@/component/Icon/VolumeIcon.vue";
 
 import { updateCharacter, getCharacter, getCharacterSettings, updateCharacterSettings, getCharacterVoiceList } from "@/api/character";
 
@@ -193,10 +198,14 @@ const uuid = route.params.uuid;
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/";
 const imageUrl = (path) => path ? BASE_URL + path.replace(/^\//, "") : "";
+const audioUrl = (path) => path ? BASE_URL + path.replace(/^\//, "") : "";
 
 import Croppie from "croppie";
 // import "croppie/dist/croppie.css";
 import "croppie/croppie.css";
+
+// 当前试听音频
+let currentAudio = null;
 
 // 图片文件输入框
 const avatarFileInputRef = ref(null);
@@ -248,6 +257,37 @@ const currentVoiceName = computed(() => {
     const found = voiceList.value.find(v => v.uuid === settings.value.voice_uuid);
     return found ? `${found.voice_name}（${voiceLanguageLabel(found.voice_language)}）` : "";
 });
+
+// 试听当前音色
+const testCurrentVoice = () => {
+    if (!settings.value.voice_uuid) {
+        ElMessage.warning("请先选择一个音色");
+        return;
+    }
+    const voice = voiceList.value.find(v => v.uuid === settings.value.voice_uuid);
+    if (!voice) {
+        ElMessage.error("未找到对应音色，请重新选择");
+        return;
+    }
+    if (!voice.preview_voice) {
+        ElMessage.warning("当前音色没有配置试听语音");
+        return;
+    }
+    const url = audioUrl(voice.preview_voice);
+    try {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+        currentAudio = new Audio(url);
+        currentAudio.play().catch(() => {
+            ElMessage.error("播放试听语音失败，请稍后重试");
+        });
+    } catch (e) {
+        console.error(e);
+        ElMessage.error("播放试听语音失败，请稍后重试");
+    }
+};
 
 // 更新信息
 const handleSubmit = async () => {
@@ -506,6 +546,10 @@ onBeforeUnmount(() => {
     backgroundPhotoCroppie?.destroy();
     if (character.value.photo) URL.revokeObjectURL(character.value.photo);
     if (character.value.background_photo) URL.revokeObjectURL(character.value.background_photo);
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+    }
 });
 </script>
 

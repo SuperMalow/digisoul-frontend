@@ -57,7 +57,7 @@
                                     :disabled="isVoiceLoading">
                                     <option disabled value="">{{ isVoiceLoading ? "正在加载音色..." : "请选择音色" }}</option>
                                     <option v-for="voice in voiceOptions" :key="voice.uuid" :value="voice.uuid">
-                                        {{ voice.voice_name || "未命名音色" }}（{{ voice.voice_language }}）
+                                        {{ voice.voice_name || "未命名音色" }}（{{ voiceLanguageLabel(voice.voice_language) }}）
                                     </option>
                                 </select>
                             </fieldset>
@@ -176,6 +176,10 @@ const backgroundPhotoFile = ref(null);
 const isSubmitting = ref(false);
 const isVoiceLoading = ref(false);
 const voiceOptions = ref([]);
+
+// 音色语言映射
+const voiceLanguageMap = { zh: "中文", en: "英文", ja: "日文", ko: "韩文" };
+const voiceLanguageLabel = (lang) => voiceLanguageMap[lang] || lang;
 
 const avatarModalRef = ref(null);
 const backgroundPhotoModalRef = ref(null);
