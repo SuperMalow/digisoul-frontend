@@ -443,6 +443,10 @@ onBeforeUnmount(() => {
     backgroundPhotoCroppie?.destroy();
     if (avatarPreview.value) URL.revokeObjectURL(avatarPreview.value);
     if (backgroundPhotoPreview.value) URL.revokeObjectURL(backgroundPhotoPreview.value);
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+    }
 });
 </script>
 

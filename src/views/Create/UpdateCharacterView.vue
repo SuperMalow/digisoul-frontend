@@ -252,12 +252,6 @@ const voiceList = ref([]);
 const voiceLanguageMap = { zh: "中文", en: "英文", ja: "日文", ko: "韩文" };
 const voiceLanguageLabel = (lang) => voiceLanguageMap[lang] || lang;
 
-// 当前选中音色名称
-const currentVoiceName = computed(() => {
-    const found = voiceList.value.find(v => v.uuid === settings.value.voice_uuid);
-    return found ? `${found.voice_name}（${voiceLanguageLabel(found.voice_language)}）` : "";
-});
-
 // 试听当前音色
 const testCurrentVoice = () => {
     if (!settings.value.voice_uuid) {
