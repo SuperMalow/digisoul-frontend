@@ -323,7 +323,7 @@ const handleEnterKey = (event) => {
 
 // 发送消息
 const send = async (event, audio_messages = null, audio_files = null) => {
-    console.log("存在 audio 文件 ===> ", audio_files)
+    // console.log("存在 audio 文件 ===> ", audio_files)
     let text;
     if (audio_messages) {
         // 发送的语音消息

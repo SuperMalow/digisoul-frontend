@@ -147,7 +147,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { ref, nextTick, onMounted, onBeforeUnmount, watch } from "vue";
 import { createCharacter, getCharacterVoiceList } from "@/api/character";
 import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
@@ -200,6 +200,17 @@ const form = ref({
     settings_short_profile: "",
     settings_voice_uuid: "",
 });
+
+// 切换音色时，自动暂停当前试听音频
+watch(
+    () => form.value.settings_voice_uuid,
+    () => {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+    },
+);
 
 const loadVoiceOptions = async () => {
     isVoiceLoading.value = true;

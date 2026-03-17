@@ -1,6 +1,6 @@
 <template>
     <div class="min-h-[calc(100vh-4rem)] bg-base-200">
-        <div class="max-w-lg mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto px-4 py-8">
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body p-4 sm:p-6">
                     <!-- 返回上个操作 -->
@@ -182,7 +182,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, nextTick, onBeforeUnmount, watch } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 import CameraIcon from "@/component/Icon/CameraIcon.vue";
@@ -251,6 +251,18 @@ const voiceList = ref([]);
 // 音色语言映射
 const voiceLanguageMap = { zh: "中文", en: "英文", ja: "日文", ko: "韩文" };
 const voiceLanguageLabel = (lang) => voiceLanguageMap[lang] || lang;
+
+// 切换音色时，自动暂停当前试听音频
+watch(
+    () => settings.value.voice_uuid,
+    () => {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+            currentAudio = null;
+        }
+    },
+);
 
 // 试听当前音色
 const testCurrentVoice = () => {
