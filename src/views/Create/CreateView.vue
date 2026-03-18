@@ -180,13 +180,13 @@ import VolumeIcon from "@/component/Icon/VolumeIcon.vue";
 const router = useRouter();
 
 import CameraIcon from "@/component/Icon/CameraIcon.vue";
+import { joinUrl, MEDIA_BASE_URL } from "@/utils/url";
 
 import Croppie from "croppie";
 // import "croppie/dist/croppie.css";
 import "croppie/croppie.css";
 
-const MEDIA_URL = import.meta.env.VITE_MEDIA_URL || import.meta.env.VITE_API_URL || "http://localhost:8000/";
-const audioUrl = (path) => (path ? MEDIA_URL + path.replace(/^\//, "") : "");
+const audioUrl = (path) => (path ? joinUrl(MEDIA_BASE_URL, path) : "");
 
 const fileInputRef = ref(null);
 const backgroundPhotoFileInputRef = ref(null);

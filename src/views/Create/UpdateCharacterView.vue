@@ -263,13 +263,13 @@ import {
 
 import { useRouter } from "vue-router";
 const router = useRouter();
+import { joinUrl, MEDIA_BASE_URL } from "@/utils/url";
 
 const route = useRoute();
 const uuid = route.params.uuid;
 
-const MEDIA_URL = import.meta.env.VITE_MEDIA_URL || import.meta.env.VITE_API_URL || "http://localhost:8000/";
-const imageUrl = (path) => path ? MEDIA_URL + path.replace(/^\//, "") : "";
-const audioUrl = (path) => path ? MEDIA_URL + path.replace(/^\//, "") : "";
+const imageUrl = (path) => path ? joinUrl(MEDIA_BASE_URL, path) : "";
+const audioUrl = (path) => path ? joinUrl(MEDIA_BASE_URL, path) : "";
 
 import Croppie from "croppie";
 // import "croppie/dist/croppie.css";

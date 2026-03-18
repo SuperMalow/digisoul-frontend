@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
-
-const MEDIA_URL = import.meta.env.VITE_MEDIA_URL || import.meta.env.VITE_API_URL || "http://localhost:8000/";
+import { joinUrl, MEDIA_BASE_URL } from '@/utils/url';
 
 export const useUserStore = defineStore('user', {
     state: () => ({
@@ -15,7 +14,7 @@ export const useUserStore = defineStore('user', {
     getters: {
         isLogin: (state) => state.accessToken !== null,
         isPullUserInfo: (state) => state.hasPullUserInfo,
-        userPhoto: (state) => state.photo ? MEDIA_URL + state.photo : '',
+        userPhoto: (state) => state.photo ? joinUrl(MEDIA_BASE_URL, state.photo) : '',
         userName: (state) => state.username,
     },
     actions: {
