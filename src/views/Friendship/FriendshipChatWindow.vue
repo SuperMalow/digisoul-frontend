@@ -70,14 +70,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, onUnmounted, reactive, watch, computed } from 'vue';
+import { ref, onMounted, nextTick, onUnmounted, reactive, watch, computed, defineAsyncComponent } from 'vue';
 import { ElMessage } from 'element-plus';
 import { sendMessageStream, getMessageHistory } from '@/api/friends';
 import Messages from '@/component/Friendship/Messages.vue';
-import MicPhoneInput from '@/views/Friendship/MicPhoneInput.vue';
 import VolumeIcon from '@/component/Icon/VolumeIcon.vue';
 import VolumeIconClose from '@/component/Icon/VolumeIconClose.vue';
 import { joinUrl, MEDIA_BASE_URL } from '@/utils/url';
+
+const MicPhoneInput = defineAsyncComponent(() => import('@/views/Friendship/MicPhoneInput.vue'));
 
 
 // 最后一个用户消息的id

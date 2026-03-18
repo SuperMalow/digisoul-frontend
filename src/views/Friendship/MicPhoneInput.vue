@@ -21,8 +21,6 @@
 <script setup>
 import { ref, onBeforeUnmount } from 'vue';
 import MicphoneIcon from '@/component/Icon/MicphoneIcon.vue';
-import { MicVAD } from '@ricky0123/vad-web';
-import { Mp3Encoder } from '@breezystack/lamejs';
 import { sendAudioMessage } from '@/api/friends';
 import { ElMessage } from 'element-plus';
 
@@ -38,6 +36,19 @@ const isRecording = ref(false);
 const isSpeaking = ref(false);
 
 let isInitializing = false;
+let MicVADModule = null;
+let Mp3EncoderModule = null;
+
+const ensureAudioDeps = async () => {
+    if (!MicVADModule || !Mp3EncoderModule) {
+        const [{ MicVAD }, { Mp3Encoder }] = await Promise.all([
+            import('@ricky0123/vad-web'),
+            import('@breezystack/lamejs'),
+        ]);
+        MicVADModule = MicVAD;
+        Mp3EncoderModule = Mp3Encoder;
+    }
+};
 
 // 处理麦克风输入
 const handleMicphoneInput = async () => {
@@ -64,8 +75,10 @@ const startRecording = async () => {
             return;
         }
 
+        await ensureAudioDeps();
+
         if (!vadInstance) {
-            vadInstance = await MicVAD.new({
+            vadInstance = await MicVADModule.new({
                 baseAssetPath: baseUrl,
                 onnxWASMBasePath: onnxWasmBaseUrl,
                 startOnLoad: false,
@@ -130,7 +143,7 @@ const float32ToInt16 = (float32Array) => {
 // 将pcm16 ArrayBuffer转换成mp3 Blob
 const pcm16ToMp3Blob = (pcm16ArrayBuffer, sampleRate = 16000) => {
     const samples = new Int16Array(pcm16ArrayBuffer);
-    const mp3Encoder = new Mp3Encoder(1, sampleRate, 128);
+    const mp3Encoder = new Mp3EncoderModule(1, sampleRate, 128);
     const mp3Data = [];
     const blockSize = 1152;
 
