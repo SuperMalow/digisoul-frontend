@@ -1,5 +1,5 @@
 import http from "./http";
-
+import streamApi from "./streamApi";
 /**
  * 新增创作角色
  * @param {Object} data - { name?, photo?, background_photo?, profile? } 支持 FormData 或普通对象
@@ -77,6 +77,16 @@ const getCharacterListIndex = (page = 1, page_size = 10, q = null) => {
     return http.get(`character/list/index/?page=${page}&page_size=${page_size}`);
 };
 
+/**
+ * 角色性格优化 - 流式
+ * @param {Object} data - { character_uuid, character_description }
+ * @param {Function} onmessage - 消息回调
+ * @param {Function} onerror - 错误回调
+ */
+const characterProfileOptimization = (data, onmessage, onerror) => {
+    return streamApi(`tti/character/profile/optimization/`, { method: 'POST', body: data, onmessage, onerror });
+};
+
 export {
     createCharacter,
     updateCharacter,
@@ -87,4 +97,5 @@ export {
     getCharacterVoiceList,
     getCharacterList,
     getCharacterListIndex,
+    characterProfileOptimization
 };

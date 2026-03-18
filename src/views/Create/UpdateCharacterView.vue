@@ -104,13 +104,22 @@
 
                         <!-- 角色设计 -->
                         <fieldset class="fieldset">
-                            <legend class="fieldset-legend">角色设计
-                                <span class="text-xs text-base-content/40 font-normal ml-1">
-                                    {{ (character.profile || '').length }}/5000
-                                </span>
+                            <legend class="fieldset-legend w-full flex items-center justify-between gap-2">
+                                <span>角色设计</span>
+                                <div class="tooltip" data-tip="可以简单描述角色性格，让 AI 更好的理解角色">
+                                    <button type="button" class="btn btn-xs btn-outline btn-primary"
+                                        :class="{ 'loading': isOptimizingProfile }"
+                                        :disabled="isSubmitting || isOptimizingProfile || !(character.profile || '').trim()"
+                                        @click="handleOptimizeProfile">
+                                        {{ isOptimizingProfile ? '' : 'AI 润色' }}
+                                    </button>
+                                </div>
                             </legend>
                             <textarea class="textarea w-full" v-model="character.profile" placeholder="请介绍一下角色吧 ~"
                                 rows="5" maxlength="5000"></textarea>
+                            <span class="text-xs text-base-content/40 font-normal text-right">
+                                {{ (character.profile || '').length }}/5000
+                            </span>
                         </fieldset>
 
                         <!-- 背景图片 -->
@@ -144,7 +153,7 @@
                         <!-- 提交 -->
                         <div class="pt-4">
                             <button type="submit" class="btn btn-primary w-full" :class="{ 'loading': isSubmitting }"
-                                :disabled="isSubmitting">
+                                :disabled="isSubmitting || isOptimizingProfile">
                                 {{ isSubmitting ? '' : '更新角色' }}
                             </button>
                         </div>
@@ -188,7 +197,14 @@ import { ElMessage } from "element-plus";
 import CameraIcon from "@/component/Icon/CameraIcon.vue";
 import VolumeIcon from "@/component/Icon/VolumeIcon.vue";
 
-import { updateCharacter, getCharacter, getCharacterSettings, updateCharacterSettings, getCharacterVoiceList } from "@/api/character";
+import {
+    updateCharacter,
+    getCharacter,
+    getCharacterSettings,
+    updateCharacterSettings,
+    getCharacterVoiceList,
+    characterProfileOptimization,
+} from "@/api/character";
 
 import { useRouter } from "vue-router";
 const router = useRouter();
@@ -244,6 +260,7 @@ const settings = ref({
     voice_uuid: "",
 });
 const settingsLoaded = ref(false);
+const isOptimizingProfile = ref(false);
 
 // 音色列表
 const voiceList = ref([]);
@@ -480,6 +497,72 @@ const handleBackgroundPhotoSelect = (e) => {
 };
 
 const isSubmitting = ref(false);
+
+const toErrorMessage = (raw, fallback = "请求失败，请重试") => {
+    if (!raw) return fallback;
+    if (typeof raw === "object") {
+        return Object.values(raw).flat().join(" ") || fallback;
+    }
+    return String(raw);
+};
+
+// 添加在角色设计输入框内，进行滚动到底部函数设计
+const scrollToBottom = () => {
+    const textarea = document.querySelector(".textarea");
+    if (textarea) {
+        textarea.scrollTop = textarea.scrollHeight;
+    }
+};
+
+const handleOptimizeProfile = async () => {
+    if (!uuid) {
+        ElMessage.error("角色不存在或无权限访问");
+        return;
+    }
+    if (isSubmitting.value || isOptimizingProfile.value) return;
+    const description = (character.value.profile || "").trim();
+    if (!description) {
+        ElMessage.warning("请先输入角色设计内容");
+        return;
+    }
+    isOptimizingProfile.value = true;
+    try {
+        let optimizedProfile = "";
+        let streamError = null;
+        await characterProfileOptimization(
+            {
+                character_uuid: uuid,
+                character_description: description,
+            },
+            (data, isDone) => {
+                if (isDone) return;
+                if (data?.content) {
+                    optimizedProfile += data.content;
+                    character.value.profile = optimizedProfile;
+                    scrollToBottom();
+                }
+            },
+            (error) => {
+                streamError = error;
+            },
+        );
+        if (streamError) {
+            throw streamError;
+        }
+        if (optimizedProfile.trim()) {
+            ElMessage.success("性格优化完成");
+            // 提交一次更新
+            handleSubmit();
+            ElMessage.success("已成功更新角色")
+        } else {
+            ElMessage.warning("优化结果为空，请稍后重试");
+        }
+    } catch (err) {
+        ElMessage.error(toErrorMessage(err?.response?.data?.errors || err?.message, "性格优化失败"));
+    } finally {
+        isOptimizingProfile.value = false;
+    }
+};
 
 
 const getCharacterInfo = async () => {

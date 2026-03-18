@@ -57,7 +57,8 @@
                                     :disabled="isVoiceLoading">
                                     <option disabled value="">{{ isVoiceLoading ? "正在加载音色..." : "请选择音色" }}</option>
                                     <option v-for="voice in voiceOptions" :key="voice.uuid" :value="voice.uuid">
-                                        {{ voice.voice_name || "未命名音色" }}（{{ voiceLanguageLabel(voice.voice_language) }}）
+                                        {{ voice.voice_name || "未命名音色" }}（{{ voiceLanguageLabel(voice.voice_language)
+                                        }}）
                                     </option>
                                 </select>
                             </fieldset>
@@ -65,16 +66,30 @@
                             <fieldset class="fieldset">
                                 <legend class="fieldset-legend">角色介绍</legend>
                                 <input type="text" class="input w-full" v-model="form.settings_short_profile"
-                                    placeholder="请使用一句话介绍你的角色吧～" />
+                                    maxlength="100" placeholder="请使用一句话介绍你的角色吧～" />
+                                <span class="text-xs text-base-content/40 font-normal text-right">
+                                    {{ (form.settings_short_profile || '').length }}/100
+                                </span>
                             </fieldset>
                         </div>
 
                         <!-- 中部大区域 -->
                         <div class="rounded-2xl border border-base-content/10 bg-base-100/60 p-2 sm:p-5 space-y-4">
                             <fieldset class="fieldset">
-                                <legend class="fieldset-legend">角色设计</legend>
+                                <legend class="fieldset-legend w-full flex items-center justify-between gap-2">
+                                    <span>角色设计</span>
+                                    <button type="button" class="btn btn-xs btn-outline btn-primary"
+                                        :class="{ 'loading': isOptimizingProfile }"
+                                        :disabled="isSubmitting || isOptimizingProfile || !form.profile.trim()"
+                                        @click="handleOptimizeProfile">
+                                        {{ isOptimizingProfile ? '' : '性格优化' }}
+                                    </button>
+                                </legend>
                                 <textarea class="textarea w-full min-h-28" v-model="form.profile"
                                     placeholder="请设计你的角色吧 ~" rows="6"></textarea>
+                                <span class="text-xs text-base-content/40 font-normal text-right">
+                                    {{ (form.profile || '').length }}/5000
+                                </span>
                             </fieldset>
 
                             <fieldset class="fieldset">
@@ -107,7 +122,7 @@
                         <!-- 底部居中按钮 -->
                         <div class="pt-2 flex justify-center">
                             <button type="submit" class="btn btn-primary min-w-[220px] w-full max-w-[320px]"
-                                :class="{ 'loading': isSubmitting }" :disabled="isSubmitting">
+                                :class="{ 'loading': isSubmitting }" :disabled="isSubmitting || isOptimizingProfile">
                                 {{ isSubmitting ? '' : '创建角色' }}
                             </button>
                         </div>
@@ -148,7 +163,14 @@
 
 <script setup>
 import { ref, nextTick, onMounted, onBeforeUnmount, watch } from "vue";
-import { createCharacter, getCharacterVoiceList } from "@/api/character";
+import {
+    createCharacter,
+    updateCharacter,
+    getCharacterSettings,
+    updateCharacterSettings,
+    getCharacterVoiceList,
+    characterProfileOptimization,
+} from "@/api/character";
 import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
 import VolumeIcon from "@/component/Icon/VolumeIcon.vue";
@@ -174,8 +196,10 @@ const photoFile = ref(null);
 const backgroundPhotoFile = ref(null);
 
 const isSubmitting = ref(false);
+const isOptimizingProfile = ref(false);
 const isVoiceLoading = ref(false);
 const voiceOptions = ref([]);
+const draftCharacterUuid = ref("");
 
 // 音色语言映射
 const voiceLanguageMap = { zh: "中文", en: "英文", ja: "日文", ko: "韩文" };
@@ -412,11 +436,21 @@ const handleSubmit = async () => {
         payload.append("name", form.value.name);
         payload.append("gender", form.value.gender);
         payload.append("profile", form.value.profile);
-        payload.append("settings_is_public", String(form.value.settings_is_public));
-        payload.append("settings_short_profile", form.value.settings_short_profile || "");
-        payload.append("settings_voice_uuid", form.value.settings_voice_uuid || "");
-        const res = await createCharacter(payload);
+        if (draftCharacterUuid.value) {
+            payload.append("uuid", draftCharacterUuid.value);
+        } else {
+            payload.append("settings_is_public", String(form.value.settings_is_public));
+            payload.append("settings_short_profile", form.value.settings_short_profile || "");
+            payload.append("settings_voice_uuid", form.value.settings_voice_uuid || "");
+        }
+
+        const res = draftCharacterUuid.value
+            ? await updateCharacter(payload)
+            : await createCharacter(payload);
         if (res?.data?.result === "success") {
+            if (draftCharacterUuid.value) {
+                await syncDraftCharacterSettings(draftCharacterUuid.value);
+            }
             if (photoFile.value) {
                 if (avatarPreview.value) URL.revokeObjectURL(avatarPreview.value);
                 photoFile.value = null;
@@ -427,21 +461,110 @@ const handleSubmit = async () => {
                 backgroundPhotoFile.value = null;
                 backgroundPhotoPreview.value = "";
             }
+            draftCharacterUuid.value = "";
             ElMessage.success("创建成功");
             // 到时候创建完成之后跳转到角色详情页，现在先跳转到首页
             router.push(`/`);
         } else {
             console.log(res);
-            ElMessage.error(res?.data?.errors || "创建失败");
+            ElMessage.error(toErrorMessage(res?.data?.errors, "创建失败"));
         }
     } catch (err) {
-        const raw = err?.response?.data?.errors || "创建失败，请重试";
-        const msg = typeof raw === "object"
-            ? Object.values(raw).flat().join(" ") || "创建失败，请重试"
-            : raw;
-        ElMessage.error(msg);
+        ElMessage.error(toErrorMessage(err?.response?.data?.errors, "创建失败，请重试"));
     } finally {
         isSubmitting.value = false;
+    }
+};
+
+const toErrorMessage = (raw, fallback = "请求失败，请重试") => {
+    if (!raw) return fallback;
+    if (typeof raw === "object") {
+        return Object.values(raw).flat().join(" ") || fallback;
+    }
+    return String(raw);
+};
+
+const createDraftCharacter = async () => {
+    const payload = new FormData();
+    payload.append("name", (form.value.name || "").trim() || "未命名角色");
+    payload.append("gender", form.value.gender);
+    payload.append("profile", form.value.profile);
+    payload.append("settings_is_public", String(form.value.settings_is_public));
+    payload.append("settings_short_profile", form.value.settings_short_profile || "");
+    payload.append("settings_voice_uuid", form.value.settings_voice_uuid || "");
+    const res = await createCharacter(payload);
+    if (res?.data?.result !== "success") {
+        throw new Error(toErrorMessage(res?.data?.errors, "创建草稿失败"));
+    }
+    const uuid = res?.data?.character?.uuid;
+    if (!uuid) {
+        throw new Error("创建草稿失败：未返回角色 uuid");
+    }
+    draftCharacterUuid.value = uuid;
+    return uuid;
+};
+
+const syncDraftCharacterSettings = async (characterUuid) => {
+    const settingsRes = await getCharacterSettings(characterUuid);
+    if (settingsRes?.data?.result !== "success") {
+        throw new Error(toErrorMessage(settingsRes?.data?.errors, "同步角色设置失败"));
+    }
+    const list = settingsRes?.data?.character_settings || [];
+    const targetSettings = list[0];
+    if (!targetSettings?.uuid) {
+        throw new Error("同步角色设置失败：未找到角色设置");
+    }
+    const updateRes = await updateCharacterSettings({
+        uuid: targetSettings.uuid,
+        is_public: form.value.settings_is_public,
+        short_profile: form.value.settings_short_profile || "",
+        voice_uuid: form.value.settings_voice_uuid || "",
+    });
+    if (updateRes?.data?.result !== "success") {
+        throw new Error(toErrorMessage(updateRes?.data?.errors, "同步角色设置失败"));
+    }
+};
+
+const handleOptimizeProfile = async () => {
+    if (isSubmitting.value || isOptimizingProfile.value) return;
+    const description = (form.value.profile || "").trim();
+    if (!description) {
+        ElMessage.warning("请先输入角色设计内容");
+        return;
+    }
+    isOptimizingProfile.value = true;
+    try {
+        const characterUuid = draftCharacterUuid.value || await createDraftCharacter();
+        let optimizedProfile = "";
+        let streamError = null;
+        await characterProfileOptimization(
+            {
+                character_uuid: characterUuid,
+                character_description: description,
+            },
+            (data, isDone) => {
+                if (isDone) return;
+                if (data?.content) {
+                    optimizedProfile += data.content;
+                    form.value.profile = optimizedProfile;
+                }
+            },
+            (error) => {
+                streamError = error;
+            },
+        );
+        if (streamError) {
+            throw streamError;
+        }
+        if (optimizedProfile.trim()) {
+            ElMessage.success("性格优化完成");
+        } else {
+            ElMessage.warning("优化结果为空，请稍后重试");
+        }
+    } catch (err) {
+        ElMessage.error(toErrorMessage(err?.response?.data?.errors || err?.message, "性格优化失败"));
+    } finally {
+        isOptimizingProfile.value = false;
     }
 };
 
