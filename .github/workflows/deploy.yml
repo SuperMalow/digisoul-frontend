@@ -4,9 +4,11 @@ name: Deploy Digisoul Frontend
 
 # 触发方式为提交 tag 版本
 on:
+  # 第一次可以测试环境部署
   push:
     branches:
       - main
+  # 等第一次跑通后，可以切换以下打标签的形式进行
   # push:
   #   tags:
   #     - 'v*'
@@ -28,18 +30,30 @@ jobs:
           cache: 'npm'
       # 安装依赖
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       # 构建项目
       - name: Build the project
         run: npm run build
+      # 清理服务器上的旧文件
+      - name: Clean old files on server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_KEY }}
+          port: 22
+          script: |
+            rm -rf /var/www/proxy/digisoul/*
       # 部署到云服务器
       - name: Deploy to server
         uses: appleboy/scp-action@v1
         with:
           # 需要在 github 仓库提前配置好密钥
-          host:: ${{ secrets.SERVER_HOST }}
+          host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_KEY }}
           port: 22
           source: "dist/"
           target: "/var/www/proxy/digisoul/"
+          # 会将 dist 目录下所有东西拷贝到 target 而不是 dist 整个文件夹
+          strip_components: 1
