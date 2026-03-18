@@ -20,7 +20,7 @@ import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { getUserInfoByUuid } from '@/api/account';
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/";
+const MEDIA_URL = import.meta.env.VITE_MEDIA_URL || import.meta.env.VITE_API_URL || "http://localhost:8000/";
 
 const route = useRoute();
 const user_id = ref(route.params.user_id);
@@ -43,7 +43,7 @@ watch(() => route.params.user_id, (newVal) => {
 // 处理图片URL格式
 const handleImageUrl = (url) => {
     if (url) {
-        return BASE_URL + url;
+        return MEDIA_URL + url;
     }
     return null;
 };

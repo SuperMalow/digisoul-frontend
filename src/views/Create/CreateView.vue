@@ -185,8 +185,8 @@ import Croppie from "croppie";
 // import "croppie/dist/croppie.css";
 import "croppie/croppie.css";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/";
-const audioUrl = (path) => (path ? BASE_URL + path.replace(/^\//, "") : "");
+const MEDIA_URL = import.meta.env.VITE_MEDIA_URL || import.meta.env.VITE_API_URL || "http://localhost:8000/";
+const audioUrl = (path) => (path ? MEDIA_URL + path.replace(/^\//, "") : "");
 
 const fileInputRef = ref(null);
 const backgroundPhotoFileInputRef = ref(null);
