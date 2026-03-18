@@ -1,0 +1,42 @@
+# 部署前端到云服务器上
+
+name: Deploy Digisoul Frontend
+
+# 触发方式为提交 tag 版本
+on:
+  push:
+    tags:
+      - 'v*'
+
+# 部署任务
+jobs:
+  deploy:
+    # 运行在 ubuntu 最新版本上
+    runs-on: ubuntu-latest
+    steps:
+      # 将代码拉取到这个环境当中
+      - name: Checkout code
+        uses: actions/checkout@v4
+      # 设置 Node.js 环境
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+      # 安装依赖
+      - name: Install dependencies
+        run: npm install
+      # 构建项目
+      - name: Build the project
+        run: npm run build
+      # 部署到云服务器
+      - name: Deploy to server
+        uses: appleboy/ssh-action@1
+        with:
+          # 需要在 github 仓库提前配置好密钥
+          host:: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_KEY }}
+          port: 22
+          source: "dist/"
+          target: "/var/www/proxy/digisoul/"
