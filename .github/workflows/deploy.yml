@@ -30,10 +30,11 @@ jobs:
           cache: 'npm'
       # 安装依赖
       - name: Install dependencies
+        # 会按照 package-lock.json 中的依赖版本进行安装
         run: npm ci
       # 构建项目
       - name: Build the project
-        run: npm run build
+        run: npm run build -- --outDir dist
       # 清理服务器上的旧文件
       - name: Clean old files on server
         uses: appleboy/ssh-action@v1
@@ -54,6 +55,6 @@ jobs:
           key: ${{ secrets.SERVER_KEY }}
           port: 22
           source: "dist/"
-          target: "/var/www/proxy/digisoul/"
+          target: "/var/www/proxy/digisoul"
           # 会将 dist 目录下所有东西拷贝到 target 而不是 dist 整个文件夹
           strip_components: 1
