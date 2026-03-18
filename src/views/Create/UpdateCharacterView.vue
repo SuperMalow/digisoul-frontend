@@ -787,7 +787,7 @@ const pollGenerateImageTask = async (taskId, flowId = currentGenerateFlowId.valu
             if (currentStatus === "FAILURE") {
                 throw new Error(toErrorMessage(res?.data?.errors, "图片生成失败"));
             }
-            await sleep(2000);
+            await sleep(4000);
         }
         if (!isFlowActive(flowId)) return;
         throw new Error("图片生成超时，请稍后重试");
