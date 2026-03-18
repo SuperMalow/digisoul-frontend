@@ -8,7 +8,7 @@ const __dirname = path.resolve();
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "./",
+  base: "/",
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
