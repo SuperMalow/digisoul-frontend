@@ -44,7 +44,7 @@ jobs:
           key: ${{ secrets.SERVER_KEY }}
           port: 22
           script: |
-            rm -rf /var/www/proxy/digisoul/*
+            rm -rf /var/www/proxy/digisoul/dist/*
       # 部署到云服务器
       - name: Deploy to server
         uses: appleboy/scp-action@v1
