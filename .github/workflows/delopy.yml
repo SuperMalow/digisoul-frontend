@@ -5,8 +5,11 @@ name: Deploy Digisoul Frontend
 # 触发方式为提交 tag 版本
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+  # push:
+  #   tags:
+  #     - 'v*'
 
 # 部署任务
 jobs:
@@ -31,7 +34,7 @@ jobs:
         run: npm run build
       # 部署到云服务器
       - name: Deploy to server
-        uses: appleboy/scp-action@1
+        uses: appleboy/scp-action@v1
         with:
           # 需要在 github 仓库提前配置好密钥
           host:: ${{ secrets.SERVER_HOST }}
