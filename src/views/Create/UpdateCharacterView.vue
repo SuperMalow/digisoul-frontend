@@ -115,8 +115,8 @@
                                     </button>
                                 </div>
                             </legend>
-                            <textarea class="textarea w-full" v-model="character.profile" placeholder="请介绍一下角色吧 ~"
-                                rows="5" maxlength="5000"></textarea>
+                            <textarea id="textarea-profile" class="textarea w-full" v-model="character.profile"
+                                placeholder="请介绍一下角色吧 ~" rows="5" maxlength="5000"></textarea>
                             <span class="text-xs text-base-content/40 font-normal text-right">
                                 {{ (character.profile || '').length }}/5000
                             </span>
@@ -124,7 +124,17 @@
 
                         <!-- 背景图片 -->
                         <fieldset class="fieldset">
-                            <legend class="fieldset-legend">背景图片</legend>
+                            <legend class="fieldset-legend w-full flex items-center justify-between gap-2">
+                                <span>背景图片</span>
+                                <div class="tooltip" data-tip="点击生成背景图片">
+                                    <button type="button" class="btn btn-xs btn-outline btn-primary"
+                                        :class="{ 'loading': isGeneratingBackgroundPhoto }"
+                                        :disabled="isSubmitting || isGeneratingBackgroundPhoto || !(character.profile || '').trim()"
+                                        @click="handleGenerateBackgroundPhoto">
+                                        {{ isGeneratingBackgroundPhoto ? '' : 'AI 生成' }}
+                                    </button>
+                                </div>
+                            </legend>
                             <div class="relative group cursor-pointer" @click="triggerBackgroundPhotoFileInput">
                                 <div
                                     class="w-full h-28 rounded-lg overflow-hidden ring-4 ring-base-200 ring-offset-2 ring-offset-base-100 shadow-lg transition-all duration-300 group-hover:ring-primary/40 ">
@@ -153,7 +163,7 @@
                         <!-- 提交 -->
                         <div class="pt-4">
                             <button type="submit" class="btn btn-primary w-full" :class="{ 'loading': isSubmitting }"
-                                :disabled="isSubmitting || isOptimizingProfile">
+                                :disabled="isSubmitting || isOptimizingProfile || isGeneratingBackgroundPhoto || isSubmittingImageTask || isPollingImageTask">
                                 {{ isSubmitting ? '' : '更新角色' }}
                             </button>
                         </div>
@@ -188,6 +198,48 @@
             </div>
         </div>
     </dialog>
+
+    <!-- AI 生成背景图 -->
+    <dialog ref="generateBackgroundModalRef" id="generate-background-modal" class="modal" @close="stopGenerateFlow">
+        <div class="modal-box max-w-3xl">
+            <button class="btn btn-sm btn-circle btn-ghost absolute top-2 right-2"
+                @click="closeGenerateBackgroundModal">x</button>
+            <h3 class="font-bold text-lg mb-4">AI 生成背景图</h3>
+
+            <fieldset class="fieldset mb-3">
+                <legend class="fieldset-legend">提示词（可编辑）</legend>
+                <textarea id="textarea-generated-image-prompt" class="textarea w-full min-h-36"
+                    v-model="generatedImagePrompt" placeholder="正在生成提示词..." />
+            </fieldset>
+
+            <div class="flex flex-wrap gap-2 mb-4">
+                <button type="button" class="btn btn-sm btn-outline" :class="{ 'loading': isGeneratingBackgroundPhoto }"
+                    :disabled="isGeneratingBackgroundPhoto || isSubmittingImageTask"
+                    @click="startGenerateImagePrompt()">
+                    {{ isGeneratingBackgroundPhoto ? "" : "重新生成提示词" }}
+                </button>
+                <button type="button" class="btn btn-sm btn-primary"
+                    :class="{ 'loading': isSubmittingImageTask || isPollingImageTask }"
+                    :disabled="!generatedImagePrompt.trim() || isSubmittingImageTask || isPollingImageTask"
+                    @click="submitGenerateImageTask()">
+                    {{ (isSubmittingImageTask || isPollingImageTask) ? "" : "开始生成图片" }}
+                </button>
+            </div>
+
+            <div v-if="imageTaskStatus" class="text-sm text-base-content/70 mb-2">
+                当前状态：{{ imageTaskStatus }}
+            </div>
+
+            <div class="tooltip mx-auto flex justify-center items-center" data-tip="通过鼠标右键可以图片保存到本地">
+                <div v-if="generatedImageUrl" class="space-y-2">
+                    <div
+                        class="w-full h-72 sm:h-80 rounded-lg border border-base-300 bg-base-200/40 overflow-hidden flex items-center justify-center">
+                        <img :src="generatedImageUrl" alt="AI 生成背景图" class="max-w-full max-h-full object-contain" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </dialog>
 </template>
 
 <script setup>
@@ -204,6 +256,9 @@ import {
     updateCharacterSettings,
     getCharacterVoiceList,
     characterProfileOptimization,
+    generateImagePrompt,
+    generateImageTask,
+    getGenerateImageTaskStatus,
 } from "@/api/character";
 
 import { useRouter } from "vue-router";
@@ -234,6 +289,7 @@ const backgroundPhotoFile = ref(null);
 // 图片裁剪modal
 const avatarPhotoModalRef = ref(null);
 const backgroundPhotoModalRef = ref(null);
+const generateBackgroundModalRef = ref(null);
 
 // 图片裁剪 ref
 const avatarCroppieRef = ref(null);
@@ -261,6 +317,16 @@ const settings = ref({
 });
 const settingsLoaded = ref(false);
 const isOptimizingProfile = ref(false);
+const isGeneratingBackgroundPhoto = ref(false);
+const isSubmittingImageTask = ref(false);
+const isPollingImageTask = ref(false);
+const imageTaskStatus = ref("");
+const generatedImagePrompt = ref("");
+const generatedImageUrl = ref("");
+const generatedImageTaskId = ref("");
+const isGenerateModalOpen = ref(false);
+const currentGenerateFlowId = ref(0);
+const generatePromptAbortController = ref(null);
 
 // 音色列表
 const voiceList = ref([]);
@@ -363,7 +429,7 @@ const handleSubmit = async () => {
         }
 
         ElMessage.success("更新角色信息成功");
-        router.push(`/`);
+        // router.push(`/`);
     } catch (err) {
         const raw = err?.response?.data?.errors || "更新角色信息失败";
         const msg = typeof raw === "object"
@@ -507,8 +573,8 @@ const toErrorMessage = (raw, fallback = "请求失败，请重试") => {
 };
 
 // 添加在角色设计输入框内，进行滚动到底部函数设计
-const scrollToBottom = () => {
-    const textarea = document.querySelector(".textarea");
+const scrollToBottomProfile = () => {
+    const textarea = document.querySelector("#textarea-profile");
     if (textarea) {
         textarea.scrollTop = textarea.scrollHeight;
     }
@@ -539,7 +605,7 @@ const handleOptimizeProfile = async () => {
                 if (data?.content) {
                     optimizedProfile += data.content;
                     character.value.profile = optimizedProfile;
-                    scrollToBottom();
+                    scrollToBottomProfile();
                 }
             },
             (error) => {
@@ -564,6 +630,173 @@ const handleOptimizeProfile = async () => {
     }
 };
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isFlowActive = (flowId) => isGenerateModalOpen.value && flowId === currentGenerateFlowId.value;
+
+const stopGenerateFlow = () => {
+    currentGenerateFlowId.value += 1;
+    isGenerateModalOpen.value = false;
+    generatePromptAbortController.value?.abort();
+    generatePromptAbortController.value = null;
+    isGeneratingBackgroundPhoto.value = false;
+    isSubmittingImageTask.value = false;
+    isPollingImageTask.value = false;
+    generatedImageTaskId.value = "";
+    imageTaskStatus.value = "已停止";
+};
+
+const closeGenerateBackgroundModal = () => {
+    stopGenerateFlow();
+    generateBackgroundModalRef.value?.close();
+};
+
+const handleGenerateBackgroundPhoto = async () => {
+    if (!uuid) {
+        ElMessage.error("角色不存在或无权限访问");
+        return;
+    }
+    if (!(character.value.profile || "").trim()) {
+        ElMessage.warning("请先完善角色设计，再生成背景图");
+        return;
+    }
+    generatedImageUrl.value = "";
+    generatedImageTaskId.value = "";
+    imageTaskStatus.value = "";
+    currentGenerateFlowId.value += 1;
+    isGenerateModalOpen.value = true;
+    generateBackgroundModalRef.value?.showModal();
+    await startGenerateImagePrompt(currentGenerateFlowId.value);
+};
+
+const startGenerateImagePrompt = async (flowId = currentGenerateFlowId.value) => {
+    if (!uuid) return;
+    if (!isFlowActive(flowId)) return;
+    isGeneratingBackgroundPhoto.value = true;
+    generatedImagePrompt.value = "";
+    generatedImageUrl.value = "";
+    generatedImageTaskId.value = "";
+    imageTaskStatus.value = "正在生成提示词...";
+    generatePromptAbortController.value?.abort();
+    const controller = new AbortController();
+    generatePromptAbortController.value = controller;
+    try {
+        let streamError = null;
+        await generateImagePrompt(
+            { character_uuid: uuid },
+            (data, isDone) => {
+                if (!isFlowActive(flowId)) return;
+                if (isDone) return;
+                if (data?.content) {
+                    generatedImagePrompt.value += data.content;
+                    scrollToBottom();
+                }
+            },
+            (error) => {
+                streamError = error;
+            },
+            { signal: controller.signal },
+        );
+        if (!isFlowActive(flowId)) return;
+        if (streamError) {
+            throw streamError;
+        }
+        imageTaskStatus.value = "提示词生成完成";
+        if (!generatedImagePrompt.value.trim()) {
+            ElMessage.warning("提示词为空，请重试");
+        }
+    } catch (err) {
+        if (err?.name === "AbortError" || !isFlowActive(flowId)) {
+            return;
+        }
+        imageTaskStatus.value = "提示词生成失败";
+        ElMessage.error(toErrorMessage(err?.response?.data?.errors || err?.message, "生成提示词失败"));
+    } finally {
+        if (isFlowActive(flowId)) {
+            isGeneratingBackgroundPhoto.value = false;
+        }
+    }
+};
+
+// 随着生成的文字滚动到最底部
+const scrollToBottom = () => {
+    const textarea = document.querySelector("#textarea-generated-image-prompt");
+    if (textarea) {
+        textarea.scrollTop = textarea.scrollHeight;
+    }
+};
+
+const submitGenerateImageTask = async (flowId = currentGenerateFlowId.value) => {
+    if (!isFlowActive(flowId)) return;
+    // 重新清空已生成的图片
+    generatedImageUrl.value = "";
+    const prompt = (generatedImagePrompt.value || "").trim();
+    if (!prompt) {
+        ElMessage.warning("请先生成或填写提示词");
+        return;
+    }
+    isSubmittingImageTask.value = true;
+    try {
+        const res = await generateImageTask(prompt);
+        if (res?.data?.result !== "success") {
+            throw new Error(toErrorMessage(res?.data?.errors, "提交生成任务失败"));
+        }
+        const taskId = res?.data?.task_id;
+        if (!taskId) {
+            throw new Error("提交任务失败：未返回 task_id");
+        }
+        if (!isFlowActive(flowId)) return;
+        generatedImageTaskId.value = taskId;
+        ElMessage.success("任务已提交，正在生成图片");
+        await pollGenerateImageTask(taskId, flowId);
+    } catch (err) {
+        if (!isFlowActive(flowId)) return;
+        imageTaskStatus.value = "提交任务失败";
+        ElMessage.error(toErrorMessage(err?.response?.data?.errors || err?.message, "提交生成任务失败"));
+    } finally {
+        if (isFlowActive(flowId)) {
+            isSubmittingImageTask.value = false;
+        }
+    }
+};
+
+const pollGenerateImageTask = async (taskId, flowId = currentGenerateFlowId.value) => {
+    isPollingImageTask.value = true;
+    const maxAttempts = 60;
+    try {
+        for (let i = 0; i < maxAttempts; i++) {
+            if (!isFlowActive(flowId)) return;
+            const res = await getGenerateImageTaskStatus(taskId);
+            if (!isFlowActive(flowId)) return;
+            if (res?.data?.result === "error") {
+                throw new Error(toErrorMessage(res?.data?.errors, "图片生成失败"));
+            }
+            const currentStatus = res?.data?.status || "UNKNOWN";
+            imageTaskStatus.value = currentStatus;
+
+            if (currentStatus === "SUCCESS") {
+                const imageUrl = res?.data?.image_url;
+                if (!imageUrl) {
+                    throw new Error("图片生成成功但未返回图片地址");
+                }
+                generatedImageUrl.value = imageUrl;
+                imageTaskStatus.value = "生成完成";
+                ElMessage.success("背景图生成成功");
+                return;
+            }
+            if (currentStatus === "FAILURE") {
+                throw new Error(toErrorMessage(res?.data?.errors, "图片生成失败"));
+            }
+            await sleep(2000);
+        }
+        if (!isFlowActive(flowId)) return;
+        throw new Error("图片生成超时，请稍后重试");
+    } finally {
+        if (isFlowActive(flowId)) {
+            isPollingImageTask.value = false;
+        }
+    }
+};
 
 const getCharacterInfo = async () => {
     try {
@@ -631,6 +864,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    stopGenerateFlow();
     avatarCroppie?.destroy();
     backgroundPhotoCroppie?.destroy();
     if (character.value.photo) URL.revokeObjectURL(character.value.photo);

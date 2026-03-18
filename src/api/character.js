@@ -87,6 +87,48 @@ const characterProfileOptimization = (data, onmessage, onerror) => {
     return streamApi(`tti/character/profile/optimization/`, { method: 'POST', body: data, onmessage, onerror });
 };
 
+/**
+ * 生成图片提示词 - 流式
+ * @param {Object} data - { character_uuid }
+ * @param {Function} onmessage - 消息回调
+ * @param {Function} onerror - 错误回调
+ */
+const generateImagePrompt = (data, onmessage, onerror) => {
+    return streamApi(`tti/generate/image/prompt/`, { method: 'POST', body: data, onmessage, onerror });
+};
+
+/**
+ * 提交图片生成任务
+ * @param {String} prompt - 生图提示词
+ */
+const generateImageTask = (prompt) => {
+    return http.post(`tti/generate/image/`, { prompt });
+};
+
+/**
+ * 查询图片生成任务状态
+ * @param {String} task_id - 任务ID
+ */
+const getGenerateImageTaskStatus = (task_id) => {
+    return http.get(`tti/generate/image/task/?task_id=${task_id}`);
+};
+
+/**
+ * 下载生成任务的图片文件（后端代理）
+ * @param {String} task_id - 任务ID
+ */
+const getGenerateImageTaskFile = (task_id) => {
+    return http.get(`tti/generate/image/task/file/?task_id=${task_id}`, {}, { responseType: 'blob' });
+};
+
+/**
+ * 取消图片生成任务
+ * @param {String} task_id - 任务ID
+ */
+const cancelGenerateImageTask = (task_id) => {
+    return http.post(`tti/generate/image/task/cancel/`, { task_id });
+};
+
 export {
     createCharacter,
     updateCharacter,
@@ -97,5 +139,10 @@ export {
     getCharacterVoiceList,
     getCharacterList,
     getCharacterListIndex,
-    characterProfileOptimization
+    characterProfileOptimization,
+    generateImagePrompt,
+    generateImageTask,
+    getGenerateImageTaskStatus,
+    getGenerateImageTaskFile,
+    cancelGenerateImageTask,
 };

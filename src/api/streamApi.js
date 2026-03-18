@@ -71,6 +71,10 @@ export default async function streamApi(url, options = {}) {
             },
             // 需要传递错误处理
             onerror(err) {
+                // 主动取消请求时，直接结束流，不走错误提示
+                if (err?.name === 'AbortError') {
+                    return;
+                }
                 // 2. 捕获重试信号并递归
                 if (err.message === "TOKEN_REFRESHED") {
                     return startFetch();
