@@ -77,6 +77,7 @@ import Messages from '@/component/Friendship/Messages.vue';
 import VolumeIcon from '@/component/Icon/VolumeIcon.vue';
 import VolumeIconClose from '@/component/Icon/VolumeIconClose.vue';
 import { joinUrl, MEDIA_BASE_URL } from '@/utils/url';
+import { createId } from '@/utils/id';
 
 const MicPhoneInput = defineAsyncComponent(() => import('@/views/Friendship/MicPhoneInput.vue'));
 
@@ -134,7 +135,7 @@ const loadHistoryMessages = async () => {
                     content: message.output,
                     is_audio: message.tts_audio ? true : false,
                     audio_url: message.tts_audio ? message.tts_audio : null,
-                    id: crypto.randomUUID(),
+                    id: createId(),
                     created_at: message.created_at,
                     status: true,
                 });
@@ -143,7 +144,7 @@ const loadHistoryMessages = async () => {
                     content: message.user_message,
                     is_audio: message.audio_message ? true : false,
                     audio_url: message.audio_message ? message.audio_message : null,
-                    id: crypto.randomUUID(),
+                    id: createId(),
                     created_at: message.created_at,
                     status: true,
                 });
@@ -220,7 +221,7 @@ const changeUserMessageToAudio = (audioPayload) => {
     handlerPushbackMessage({
         role: 'user',
         content: audioPayload.audio_url,
-        id: crypto.randomUUID(),
+        id: createId(),
         is_audio: true,
         audio_url: audioPayload.audio_url,
         audio_duration: audioPayload.audio_duration,
@@ -339,13 +340,13 @@ const send = async (event, audio_messages = null, audio_files = null) => {
 
     inputText.value = '';
 
-    handlerPushbackMessage({ role: 'interrupted', is_interrupted: false, id: crypto.randomUUID(), status: true });
+    handlerPushbackMessage({ role: 'interrupted', is_interrupted: false, id: createId(), status: true });
     if (audio_messages) {
-        // handlerPushbackMessage({ role: 'user', content: null, id: crypto.randomUUID(), is_audio: true });
+        // handlerPushbackMessage({ role: 'user', content: null, id: createId(), is_audio: true });
     } else {
-        handlerPushbackMessage({ role: 'user', content: text, id: crypto.randomUUID(), is_audio: false, status: false });
+        handlerPushbackMessage({ role: 'user', content: text, id: createId(), is_audio: false, status: false });
     }
-    handlerPushbackMessage({ role: 'assistant', content: '', id: crypto.randomUUID(), status: true });
+    handlerPushbackMessage({ role: 'assistant', content: '', id: createId(), status: true });
 
     const enableTts = isTtsEnabled.value;
     let sentenceChunks = [];

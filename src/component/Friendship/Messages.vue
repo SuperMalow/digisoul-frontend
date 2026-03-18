@@ -69,6 +69,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import VolumeIcon from '@/component/Icon/VolumeIcon.vue';
 import { joinUrl, MEDIA_BASE_URL } from '@/utils/url';
+import { createId } from '@/utils/id';
 
 const props = defineProps({
     messages: {
@@ -87,7 +88,7 @@ const props = defineProps({
 
 const audioRef = ref(null);
 const isPlaying = ref(false);
-const instanceId = crypto.randomUUID();
+const instanceId = createId();
 
 const pauseByOther = (e) => {
     if (e.detail === instanceId) return;
