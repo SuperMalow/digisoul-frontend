@@ -3,7 +3,7 @@
         <div v-if="messages.role === 'assistant'" class="chat chat-start me-auto">
             <div class="chat-image avatar">
                 <div class="w-8 rounded-full">
-                    <img :src="character.photo" :alt="character.name" />
+                    <img :src="joinUrl(MEDIA_BASE_URL, character.photo)" :alt="character.name" />
                 </div>
             </div>
             <div class="chat-header">
@@ -68,6 +68,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import VolumeIcon from '@/component/Icon/VolumeIcon.vue';
+import { joinUrl, MEDIA_BASE_URL } from '@/utils/url';
 
 const props = defineProps({
     messages: {

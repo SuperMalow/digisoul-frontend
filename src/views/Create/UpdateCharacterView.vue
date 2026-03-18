@@ -18,7 +18,7 @@
                         <div class="relative group cursor-pointer" @click="triggerAvatarPhotoFileInput">
                             <div
                                 class="w-28 h-28 rounded-full overflow-hidden ring-4 ring-base-200 ring-offset-2 ring-offset-base-100 shadow-lg transition-all duration-300 group-hover:ring-primary/40 ">
-                                <img v-if="character.photo" :src="character.photo" alt="角色头像"
+                                <img v-if="character.photo" :src="joinUrl(MEDIA_BASE_URL, character.photo)" alt="角色头像"
                                     class="w-full h-full object-cover rounded-full" />
                                 <div v-else
                                     class="w-full h-full bg-base-200 rounded-full flex justify-center items-center">
@@ -139,7 +139,8 @@
                                 <div
                                     class="w-full h-28 rounded-lg overflow-hidden ring-4 ring-base-200 ring-offset-2 ring-offset-base-100 shadow-lg transition-all duration-300 group-hover:ring-primary/40 ">
                                     <!-- 背景图片应该显示完整，不要裁剪 object-contain -->
-                                    <img v-if="character.background_photo" :src="character.background_photo" alt="背景图片"
+                                    <img v-if="character.background_photo"
+                                        :src="joinUrl(MEDIA_BASE_URL, character.background_photo)" alt="背景图片"
                                         class="w-full h-full object-contain rounded-lg" />
                                     <div v-else
                                         class="w-full h-full bg-base-200 rounded-lg flex justify-center items-center gap-2">
@@ -248,6 +249,7 @@ import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 import CameraIcon from "@/component/Icon/CameraIcon.vue";
 import VolumeIcon from "@/component/Icon/VolumeIcon.vue";
+import { joinUrl, MEDIA_BASE_URL } from "@/utils/url";
 
 import {
     updateCharacter,

@@ -3,12 +3,14 @@
         <div class="flex justify-center">
             <!-- 左边为角色背景 -->
             <div class="w-1/2">
-                <img :src="content?.background_photo" alt="角色背景" class="w-full h-full object-cover" draggable="false" />
+                <img :src="joinUrl(MEDIA_BASE_URL, content?.background_photo)" alt="角色背景"
+                    class="w-full h-full object-cover" draggable="false" />
             </div>
             <!-- 右边为角色的简介信息 -->
             <div class="w-1/2 p-4 m-4">
                 <div class="flex items-center gap-4">
-                    <img :src="content?.photo" alt="角色头像" class="w-10 h-10 object-cover rounded-full" draggable="false"
+                    <img :src="joinUrl(MEDIA_BASE_URL, content?.photo)" alt="角色头像"
+                        class="w-10 h-10 object-cover rounded-full" draggable="false"
                         :class="{ 'cursor-pointer': isFriend }" @click="handlerGoToChat" />
                     <span @click="handlerGoToChat" class="text-xl font-bold text-center"
                         :class="{ 'cursor-pointer': isFriend }">{{ content?.name
@@ -100,6 +102,7 @@ import { createFriends as addFriendsApi, deleteFriends as deleteFriendsApi } fro
 import { useRouter } from 'vue-router';
 import MaleIcon from '../Icon/MaleIcon.vue';
 import FemaleIcon from '../Icon/FemaleIcon.vue';
+import { joinUrl, MEDIA_BASE_URL } from '@/utils/url';
 
 const userStore = useUserStore();
 

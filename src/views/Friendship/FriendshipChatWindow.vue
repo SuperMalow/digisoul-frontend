@@ -5,7 +5,7 @@
             class="flex items-center gap-3 px-4 py-3 shrink-0 border-b border-base-300/80 bg-gradient-to-b from-base-100 to-base-200/40 shadow-sm">
             <div class="avatar">
                 <div class="w-10 rounded-full ring-2 ring-base-300/90 ring-offset-1 ring-offset-base-100">
-                    <img :src="friend.character?.photo" :alt="friend.character?.name" />
+                    <img :src="joinUrl(MEDIA_BASE_URL, friend.character?.photo)" :alt="friend.character?.name" />
                 </div>
             </div>
             <div class="min-w-0">
@@ -77,6 +77,7 @@ import Messages from '@/component/Friendship/Messages.vue';
 import MicPhoneInput from '@/views/Friendship/MicPhoneInput.vue';
 import VolumeIcon from '@/component/Icon/VolumeIcon.vue';
 import VolumeIconClose from '@/component/Icon/VolumeIconClose.vue';
+import { joinUrl, MEDIA_BASE_URL } from '@/utils/url';
 
 
 // 最后一个用户消息的id

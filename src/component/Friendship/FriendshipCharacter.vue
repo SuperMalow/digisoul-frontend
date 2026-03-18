@@ -2,7 +2,8 @@
     <li class="list-row transition-colors duration-150 cursor-pointer border border-transparent" :class="{
         'bg-base-200/70 border-base-200 shadow-sm': isSelected,
     }" @click="handleSelectFriend">
-        <div><img class="size-10 rounded-box" :src="friend?.character?.photo" /></div>
+        <div><img class="size-10 rounded-box" :src="joinUrl(MEDIA_BASE_URL, friend?.character?.photo)" alt="角色头像" />
+        </div>
         <div>
             <div>{{ friend?.character?.name }}</div>
             <div class="text-xs uppercase font-semibold opacity-60">{{ friend?.character?.uuid }}</div>
@@ -38,6 +39,7 @@
 <script setup>
 import EllipsisIcon from '@/component/Icon/EllipsisIcon.vue'
 import { onMounted } from 'vue';
+import { joinUrl, MEDIA_BASE_URL } from '@/utils/url';
 
 const emit = defineEmits(['selectFriend', 'deleteFriend']);
 
