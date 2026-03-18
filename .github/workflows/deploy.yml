@@ -57,4 +57,4 @@ jobs:
           source: "dist/"
           target: "/var/www/proxy/digisoul"
           # 会将 dist 目录下所有东西拷贝到 target 而不是 dist 整个文件夹
-          strip_components: 1
+          # strip_components: 1
