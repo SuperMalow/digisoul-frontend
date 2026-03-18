@@ -265,7 +265,6 @@ import {
 
 import { useRouter } from "vue-router";
 const router = useRouter();
-import { joinUrl, MEDIA_BASE_URL } from "@/utils/url";
 
 const route = useRoute();
 const uuid = route.params.uuid;
