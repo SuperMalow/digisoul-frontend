@@ -78,12 +78,14 @@
                             <fieldset class="fieldset">
                                 <legend class="fieldset-legend w-full flex items-center justify-between gap-2">
                                     <span>角色设计</span>
-                                    <button type="button" class="btn btn-xs btn-outline btn-primary"
-                                        :class="{ 'loading': isOptimizingProfile }"
-                                        :disabled="isSubmitting || isOptimizingProfile || !form.profile.trim()"
-                                        @click="handleOptimizeProfile">
-                                        {{ isOptimizingProfile ? '' : '性格优化' }}
-                                    </button>
+                                    <div class="tooltip" data-tip="可以简单描述角色性格，让 AI 更好的理解角色">
+                                        <button type="button" class="btn btn-xs btn-outline btn-primary"
+                                            :class="{ 'loading': isOptimizingProfile }"
+                                            :disabled="isSubmitting || isOptimizingProfile || !form.profile.trim()"
+                                            @click="handleOptimizeProfile">
+                                            {{ isOptimizingProfile ? '' : 'AI 润色' }}
+                                        </button>
+                                    </div>
                                 </legend>
                                 <textarea class="textarea w-full min-h-28" v-model="form.profile"
                                     placeholder="请设计你的角色吧 ~" rows="6"></textarea>
