@@ -20,9 +20,9 @@
                         <span>{{ isPlaying ? '正在播放' : '语音消息' }}</span>
                         <span class="opacity-80 text-xs">{{ formatDuration(displayDuration) }}</span>
                     </button>
-                    <audio ref="audioRef" :src="messages.audio_url" preload="metadata" @ended="handleAudioEnded"
-                        @loadedmetadata="handleLoadedMetadata" @timeupdate="handleAudioTimeUpdate"
-                        @play="handleAudioPlay" @pause="handleAudioPause"></audio>
+                    <audio ref="audioRef" :src="joinUrl(MEDIA_BASE_URL, messages.audio_url)" preload="metadata"
+                        @ended="handleAudioEnded" @loadedmetadata="handleLoadedMetadata"
+                        @timeupdate="handleAudioTimeUpdate" @play="handleAudioPlay" @pause="handleAudioPause"></audio>
                 </div>
             </div>
         </div>
@@ -42,11 +42,12 @@
                         @click="toggleAudioPlay">
                         <span class="ms-2">{{ isPlaying ? '正在播放' : '语音消息' }}</span>
                         <span class="opacity-80 text-xs">{{ formatDuration(displayDuration) }}</span>
-                        <audio v-if="messages.audio_url" ref="audioRef" :src="messages.audio_url" preload="metadata"
+                        <audio v-if="messages.audio_url" ref="audioRef"
+                            :src="joinUrl(MEDIA_BASE_URL, messages.audio_url)" preload="metadata"
                             @ended="handleAudioEnded" @loadedmetadata="handleLoadedMetadata"
                             @timeupdate="handleAudioTimeUpdate" @play="handleAudioPlay"
                             @pause="handleAudioPause"></audio>
-                        <audio v-else ref="audioRef" :src="messages.content" preload="metadata"
+                        <audio v-else ref="audioRef" :src="joinUrl(MEDIA_BASE_URL, messages.content)" preload="metadata"
                             @ended="handleAudioEnded" @loadedmetadata="handleLoadedMetadata"
                             @timeupdate="handleAudioTimeUpdate" @play="handleAudioPlay"
                             @pause="handleAudioPause"></audio>
