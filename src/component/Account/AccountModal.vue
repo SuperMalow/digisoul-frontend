@@ -1,6 +1,6 @@
 <template>
     <dialog id="my_modal" class="modal" :open="navbarStore.isOpenLoginModal">
-        <div class="modal-box bg-base-100 w-1/3 max-w-3xl">
+        <div class="modal-box bg-base-100 max-w-md">
             <form method="dialog">
                 <h3 class="text-xl font-bold text-center">
                     登录后免费体验

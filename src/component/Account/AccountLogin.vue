@@ -5,8 +5,12 @@
                 <div class="btn btn-ghost" :class="{ 'btn-active': loginType === 'email' }"
                     @click="loginType = 'email'">
                     邮箱登录</div>
-                <div class="btn btn-ghost" :class="{ 'btn-active': loginType === 'code' }" @click="loginType = 'code'">
-                    验证码登录</div>
+                <!-- <div class="btn btn-ghost" :class="{ 'btn-active': loginType === 'code' }" @click="loginType = 'code'">
+                    验证码登录</div> -->
+                <div class="tooltip" data-tip="暂时不开放注册，请联系 shengwencode@163.com 获取体验">
+                    <button class="btn btn-ghost">
+                        验证码登录</button>
+                </div>
             </div>
         </div>
         <form class="text-center" @submit.prevent="handleLogin">
